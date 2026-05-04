@@ -7,6 +7,7 @@ import '../../../app/shared/widgets/error_state.dart';
 import '../../../app/data/auth_service.dart';
 import '../../../app/routes/app_routes.dart';
 import '../controllers/dashboard_controller.dart';
+import '../../notifications/controllers/notification_controller.dart';
 
 class DashboardView extends StatelessWidget {
   const DashboardView({super.key});
@@ -128,9 +129,33 @@ class DashboardView extends StatelessWidget {
       ),
       actions: [
         IconButton(
-          onPressed: () {},
-          icon: const Icon(Icons.notifications_none_rounded,
-              color: AppColors.primary, size: 24),
+          onPressed: () => Get.toNamed(AppRoutes.adminNotifications),
+          icon: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              const Icon(Icons.notifications_none_rounded,
+                  color: AppColors.primary, size: 24),
+              // Badge unread — hanya tampil jika ada notif belum dibaca
+              if (Get.isRegistered<NotificationController>())
+                Obx(() {
+                  final count =
+                      Get.find<NotificationController>().unreadCount;
+                  if (count == 0) return const SizedBox.shrink();
+                  return Positioned(
+                    top: -2,
+                    right: -2,
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: AppColors.error,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  );
+                }),
+            ],
+          ),
         ),
         IconButton(
           onPressed: () => _confirmLogout(auth),

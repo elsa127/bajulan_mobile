@@ -31,6 +31,8 @@ import '../../modules/bookings/views/booking_view.dart';
 import '../../modules/bookings/controllers/booking_controller.dart';
 import '../../modules/login/galleries/views/gallery_view.dart';
 import '../../modules/login/galleries/controllers/gallery_controller.dart';
+import '../../modules/notifications/views/notification_view.dart';
+import '../../modules/notifications/controllers/notification_controller.dart';
 
 class AppPages {
   static final pages = [
@@ -102,6 +104,13 @@ class AppPages {
       name: AppRoutes.adminGalleries,
       page: () => const GalleryView(),
       binding: BindingsBuilder(() => Get.lazyPut(() => GalleryController(), fenix: true)),
+      middlewares: [AuthMiddleware()],
+    ),
+    GetPage(
+      name: AppRoutes.adminNotifications,
+      page: () => const NotificationView(),
+      binding: BindingsBuilder(
+          () => Get.lazyPut(() => NotificationController(), fenix: true)),
       middlewares: [AuthMiddleware()],
     ),
   ];
