@@ -1,118 +1,84 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:bajulan_mobile/app/shared/colors.dart';
-import 'package:bajulan_mobile/modules/login/controllers/login_controller.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../../app/shared/colors.dart';
+import '../controllers/login_controller.dart';
 
 class LoginView extends StatelessWidget {
   const LoginView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(LoginController());
-
+    final c = Get.find<LoginController>();
     return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: Opacity(
-              opacity: 0.1,
-              child: Image.network(
-                'https://images.unsplash.com/photo-1596401057633-531035736461?q=80&w=1000',
-                fit: BoxFit.cover,
-              ),
+      backgroundColor: const Color(0xFFF5F0E8),
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+            child: Column(
+              children: [
+                const SizedBox(height: 16),
+                _buildLogo(),
+                const SizedBox(height: 32),
+                _buildCard(c),
+                const SizedBox(height: 24),
+                _buildFooter(),
+                const SizedBox(height: 16),
+                const Text(
+                  'Versi 2.4.0 • Bajulan Digital Ecosystem',
+                  style: TextStyle(color: AppColors.outline, fontSize: 11),
+                ),
+                const SizedBox(height: 16),
+              ],
             ),
           ),
-          Positioned(
-            top: -100,
-            right: -100,
-            child: _buildBlurCircle(AppColors.secondary.withOpacity(0.1), 300),
-          ),
-          Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 32.0),
-              child: Column(
-                children: [
-                  _buildHeader(),
-                  const SizedBox(height: 48),
-                  _buildLoginCard(controller),
-                  const SizedBox(height: 40),
-                  Text(
-                    'Versi 2.4.0 • Bajulan Digital Ecosystem',
-                    style: TextStyle(
-                      color: AppColors.outline,
-                      fontSize: 12,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildBlurCircle(Color color, double size) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-    );
-  }
-
-  Widget _buildHeader() {
+  Widget _buildLogo() {
     return Column(
       children: [
-        Transform.rotate(
-          angle: 0.08,
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withOpacity(0.3),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                )
-              ],
-            ),
-            child: const Icon(Icons.temple_hindu, color: Colors.white, size: 48),
+        Container(
+          width: 72,
+          height: 72,
+          decoration: BoxDecoration(
+            color: AppColors.primary,
+            borderRadius: BorderRadius.circular(18),
           ),
+          child: const Icon(Icons.temple_hindu, color: Colors.white, size: 38),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 14),
         const Text(
           'Kampung Adat Bajulan',
           style: TextStyle(
-            fontSize: 26,
+            fontSize: 22,
             fontWeight: FontWeight.w800,
             color: AppColors.primary,
-            letterSpacing: -0.5,
           ),
         ),
+        const SizedBox(height: 4),
         const Text(
           'Sistem Administrasi Pariwisata',
-          style: TextStyle(color: AppColors.outline, fontSize: 14),
+          style: TextStyle(color: AppColors.outline, fontSize: 13),
         ),
       ],
     );
   }
 
-  Widget _buildLoginCard(LoginController controller) {
+  Widget _buildCard(LoginController c) {
     return Container(
-      padding: const EdgeInsets.all(28),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: Colors.white, width: 2),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.08),
-            blurRadius: 40,
-            offset: const Offset(0, 20),
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
@@ -121,77 +87,172 @@ class LoginView extends StatelessWidget {
         children: [
           const Text(
             'Masuk Akun',
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.primary),
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: AppColors.primary,
+            ),
           ),
+          const SizedBox(height: 4),
           const Text(
             'Kelola operasional desa dengan bijak.',
-            style: TextStyle(color: AppColors.outline, fontSize: 14),
+            style: TextStyle(color: AppColors.outline, fontSize: 13),
           ),
-          const SizedBox(height: 32),
-          _buildFieldLabel('Username'),
-          _buildTextField(hint: 'admin_bajulan', icon: Icons.person_2_outlined),
-          const SizedBox(height: 20),
-          _buildFieldLabel('Kata Sandi'),
-          Obx(() => _buildTextField(
-            hint: '••••••••',
-            icon: Icons.lock_person_outlined,
-            isPassword: true,
-            obscureText: controller.isObscured.value,
-            onToggle: () => controller.toggleObscure(),
-          )),
+          const SizedBox(height: 24),
+
+          // Username
+          _label('Username'),
+          _inputField(
+            controller: c.usernameCtrl,
+            hint: 'admin_bajulan',
+            icon: Icons.person_outline,
+            keyboardType: TextInputType.text,
+          ),
+          const SizedBox(height: 16),
+
+          // Password
+          _label('Kata Sandi'),
+          Obx(() => _passwordField(c)),
           const SizedBox(height: 12),
 
-          // Row untuk Ingat Saya & Lupa Sandi
+          // Remember me + Lupa sandi
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  SizedBox(
-                    height: 24,
-                    width: 24,
-                    child: Obx(() => Checkbox(
-                      value: controller.rememberMe.value,
-                      activeColor: AppColors.primary,
-                      onChanged: (val) => controller.toggleRemember(val),
-                    )),
-                  ),
-                  const SizedBox(width: 8),
-                  const Text('Ingat saya', style: TextStyle(fontSize: 13)),
-                ],
-              ),
+              Obx(() => Row(
+                    children: [
+                      SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: Checkbox(
+                          value: c.rememberMe.value,
+                          onChanged: (_) => c.toggleRemember(),
+                          activeColor: AppColors.primary,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(4)),
+                          side: const BorderSide(color: AppColors.muted),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Ingat saya',
+                        style: TextStyle(
+                            color: AppColors.onSurface, fontSize: 13),
+                      ),
+                    ],
+                  )),
               TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  Get.snackbar(
+                    'Lupa Sandi',
+                    'Hubungi admin IT untuk reset kata sandi.',
+                    snackPosition: SnackPosition.BOTTOM,
+                  );
+                },
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
                 child: const Text(
                   'Lupa sandi?',
-                  style: TextStyle(color: AppColors.secondary, fontWeight: FontWeight.w600, fontSize: 13),
+                  style: TextStyle(
+                    color: AppColors.secondary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
           ),
-
           const SizedBox(height: 24),
 
-          // Tombol Login (Satu saja, lebar penuh)
-          SizedBox(
-            width: double.infinity,
-            height: 58,
-            child: ElevatedButton(
-              onPressed: () => controller.login(),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              ),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('Masuk ke Dashboard', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  SizedBox(width: 12),
-                  Icon(Icons.arrow_forward_rounded, size: 20),
-                ],
-              ),
+          // Login button
+          Obx(() => SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: c.isLoading.value ? null : c.login,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor:
+                        AppColors.primary.withValues(alpha: 0.5),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
+                    elevation: 0,
+                  ),
+                  child: c.isLoading.value
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                              color: Colors.white, strokeWidth: 2),
+                        )
+                      : const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Masuk ke Dashboard',
+                              style: TextStyle(
+                                  fontSize: 15, fontWeight: FontWeight.bold),
+                            ),
+                            SizedBox(width: 8),
+                            Icon(Icons.arrow_forward_rounded, size: 18),
+                          ],
+                        ),
+                ),
+              )),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFooter() {
+    return Column(
+      children: [
+        const Text(
+          'Butuh bantuan akses?',
+          style: TextStyle(color: AppColors.outline, fontSize: 12),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _footerLink(
+              icon: Icons.support_agent_outlined,
+              label: 'Bantuan IT',
+              onTap: () => _launchUrl('https://wa.me/6281234567890'),
+            ),
+            const SizedBox(width: 20),
+            _footerLink(
+              icon: Icons.language_outlined,
+              label: 'Situs Desa',
+              onTap: () => _launchUrl('https://kampungadatbajulan.pbltifnganjuk.com'),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _footerLink({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Row(
+        children: [
+          Icon(icon, size: 15, color: AppColors.secondary),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              color: AppColors.secondary,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
@@ -199,39 +260,86 @@ class LoginView extends StatelessWidget {
     );
   }
 
-  Widget _buildFieldLabel(String label) {
+  Widget _label(String text) {
     return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 8),
-      child: Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primary)),
-    );
-  }
-
-  Widget _buildTextField({
-    required String hint,
-    required IconData icon,
-    bool isPassword = false,
-    bool obscureText = false,
-    VoidCallback? onToggle,
-  }) {
-    return Container(
-      decoration: BoxDecoration(color: const Color(0xFFF0EDE9), borderRadius: BorderRadius.circular(16)),
-      child: TextField(
-        obscureText: obscureText,
-        style: const TextStyle(fontWeight: FontWeight.w500),
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: const TextStyle(color: AppColors.outline),
-          prefixIcon: Icon(icon, color: AppColors.primary.withOpacity(0.5)),
-          suffixIcon: isPassword
-              ? IconButton(
-            icon: Icon(obscureText ? Icons.visibility : Icons.visibility_off, color: AppColors.outline),
-            onPressed: onToggle,
-          )
-              : null,
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: AppColors.onSurface,
         ),
       ),
     );
+  }
+
+  Widget _inputField({
+    required TextEditingController controller,
+    required String hint,
+    required IconData icon,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F2ED),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: TextField(
+        controller: controller,
+        keyboardType: keyboardType,
+        style: const TextStyle(fontSize: 14, color: AppColors.onSurface),
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle:
+              const TextStyle(color: AppColors.muted, fontSize: 14),
+          prefixIcon:
+              Icon(icon, color: AppColors.muted, size: 20),
+          border: InputBorder.none,
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+        ),
+      ),
+    );
+  }
+
+  Widget _passwordField(LoginController c) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F2ED),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: TextField(
+        controller: c.passwordCtrl,
+        obscureText: c.isObscured.value,
+        style: const TextStyle(fontSize: 14, color: AppColors.onSurface),
+        decoration: InputDecoration(
+          hintText: '••••••••',
+          hintStyle: const TextStyle(color: AppColors.muted),
+          prefixIcon:
+              const Icon(Icons.lock_outline, color: AppColors.muted, size: 20),
+          suffixIcon: IconButton(
+            icon: Icon(
+              c.isObscured.value
+                  ? Icons.visibility_outlined
+                  : Icons.visibility_off_outlined,
+              color: AppColors.muted,
+              size: 20,
+            ),
+            onPressed: c.toggleObscure,
+          ),
+          border: InputBorder.none,
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _launchUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
   }
 }

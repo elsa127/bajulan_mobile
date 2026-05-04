@@ -1,75 +1,70 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:bajulan_mobile/app/shared/colors.dart';
+import '../colors.dart';
+import '../../routes/app_routes.dart';
 
-class CustomBottomNav extends StatelessWidget {
-  // Kita gunakan RxInt supaya posisi menu yang aktif bisa dipantau GetX
-  final RxInt currentIndex = 0.obs;
+class AdminBottomNav extends StatelessWidget {
+  final int currentIndex;
+  const AdminBottomNav({super.key, required this.currentIndex});
 
-  CustomBottomNav({super.key});
+  void _onTap(int index) {
+    if (index == currentIndex) return;
+    final routes = [
+      AppRoutes.adminDashboard,
+      AppRoutes.adminPackages,
+      AppRoutes.adminEvents,
+      AppRoutes.adminBookings,
+    ];
+    Get.offAllNamed(routes[index]);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.only(top: 10, bottom: 24),
       decoration: BoxDecoration(
-        color: const Color(0xFFFDFBF7).withOpacity(0.9),
+        color: const Color(0xFFFDFBF7),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
         border: const Border(top: BorderSide(color: Color(0xFFE8E2D0))),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 20,
             offset: const Offset(0, -4),
           ),
         ],
       ),
-      child: Obx(() => Row(
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildNavItem(Icons.dashboard, 'Home', 0),
-          _buildNavItem(Icons.inventory_2_outlined, 'Packages', 1),
-          _buildNavItem(Icons.event_outlined, 'Events', 2),
-          _buildNavItem(Icons.receipt_long_outlined, 'Bookings', 3),
+          _item(Icons.dashboard_outlined, 'Home', 0),
+          _item(Icons.inventory_2_outlined, 'Packages', 1),
+          _item(Icons.event_outlined, 'Events', 2),
+          _item(Icons.receipt_long_outlined, 'Bookings', 3),
         ],
-      )),
+      ),
     );
   }
 
-  Widget _buildNavItem(IconData icon, String label, int index) {
-    bool isActive = currentIndex.value == index;
-
+  Widget _item(IconData icon, String label, int index) {
+    final active = currentIndex == index;
     return GestureDetector(
-        onTap: () {
-      currentIndex.value = index;
-      if (index == 0) Get.toNamed('/dashboard');
-      if (index == 2) Get.toNamed('/events'); // Navigasi ke halaman Event
-      // Tambahkan rute lainnya sesuai index
-    },
+      onTap: () => _onTap(index),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
+        duration: const Duration(milliseconds: 250),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isActive ? AppColors.primary : Colors.transparent,
+          color: active ? AppColors.primary : Colors.transparent,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
           children: [
-            Icon(
-              icon,
-              color: isActive ? Colors.white : Colors.grey,
-              size: 24,
-            ),
-            if (isActive) ...[
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+            Icon(icon, color: active ? Colors.white : Colors.grey, size: 22),
+            if (active) ...[
+              const SizedBox(width: 6),
+              Text(label,
+                  style: const TextStyle(
+                      color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
             ],
           ],
         ),

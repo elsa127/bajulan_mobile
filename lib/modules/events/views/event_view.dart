@@ -1,300 +1,710 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:bajulan_mobile/app/shared/colors.dart';
-import 'package:bajulan_mobile/app/shared/widgets/bottom_nav.dart';
+import 'package:intl/intl.dart';
+import '../../../app/shared/colors.dart';
+import '../../../app/shared/widgets/bottom_nav.dart';
+import '../../../app/shared/widgets/network_image_widget.dart';
+import '../../../app/shared/widgets/error_state.dart';
+import '../../../app/data/models/event_model.dart';
+import '../controllers/event_controller.dart';
 
 class EventView extends StatelessWidget {
   const EventView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final c = Get.find<EventController>();
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: _buildAppBar(),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeaderSection(),
-            const SizedBox(height: 24),
-            _buildQuickStats(),
-            const SizedBox(height: 24),
-            _buildSearchAndFilter(),
-            const SizedBox(height: 24),
-            _buildEventList(),
-            const SizedBox(height: 100),
-          ],
-        ),
-      ),
-      bottomNavigationBar: CustomBottomNav(),
-    );
-  }
-
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      backgroundColor: const Color(0xFFFDFBF7),
-      elevation: 0,
-      title: Row(
+      backgroundColor: const Color(0xFFF5F0E8),
+      body: Column(
         children: [
-          const CircleAvatar(
-            radius: 18,
-            backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=admin'),
+          _buildHeader(context, c),
+          // Stats
+          Obx(() => _buildStats(c)),
+          const SizedBox(height: 12),
+          // Search
+          _buildSearch(c),
+          const SizedBox(height: 8),
+          // List
+          Expanded(
+            child: Obx(() {
+              if (c.isLoading.value) {
+                return const Center(
+                    child: CircularProgressIndicator(color: AppColors.primary));
+              }
+              if (c.error.isNotEmpty) {
+                return ErrorState(message: c.error.value, onRetry: c.fetch);
+              }
+              if (c.filtered.isEmpty) {
+                return const Center(
+                    child: Padding(
+                  padding: EdgeInsets.all(40),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.event_busy_outlined,
+                          size: 56, color: AppColors.muted),
+                      SizedBox(height: 12),
+                      Text('Belum ada event.',
+                          style: TextStyle(color: AppColors.outline)),
+                    ],
+                  ),
+                ));
+              }
+              return RefreshIndicator(
+                onRefresh: c.fetch,
+                color: AppColors.primary,
+                child: ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+                  itemCount: c.filtered.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 16),
+                  itemBuilder: (_, i) => _EventCard(event: c.filtered[i], c: c),
+                ),
+              );
+            }),
           ),
-          const SizedBox(width: 12),
-          Text('Bajulan Admin',
-              style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w900, fontSize: 18)),
         ],
       ),
-      actions: [
-        IconButton(
-          onPressed: () {},
-          icon: const Icon(Icons.notifications_none_rounded, color: AppColors.primary),
-        ),
-      ],
-      shape: const Border(bottom: BorderSide(color: Color(0xFFE8E2D0))),
+      bottomNavigationBar: const AdminBottomNav(currentIndex: 2),
     );
   }
 
-  Widget _buildHeaderSection() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.center, // Ubah ke center agar lebih simetris
-      children: [
-        // 1. Tambahkan Expanded di sini agar teks mengalah pada tombol
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Cultural Events',
-                style: TextStyle(color: AppColors.primary, fontSize: 22, fontWeight: FontWeight.bold),
-                overflow: TextOverflow.ellipsis,
-              ),
-              const Text(
-                'Manage Bajulan\'s festivities',
-                style: TextStyle(color: Colors.grey, fontSize: 13),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+  // ── Header ─────────────────────────────────────────────
+  Widget _buildHeader(BuildContext context, EventController c) {
+    return Container(
+      color: const Color(0xFFF5F0E8),
+      padding: EdgeInsets.fromLTRB(
+          20, MediaQuery.of(context).padding.top + 16, 20, 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Cultural Events',
+                  style: TextStyle(
+                    color: AppColors.primary,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 2),
+                Text(
+                  "Manage Bajulan's traditional festivities",
+                  style: TextStyle(color: AppColors.outline, fontSize: 12),
+                ),
+              ],
+            ),
           ),
-        ),
-        const SizedBox(width: 12),
-        // 2. Gunakan Flexible agar tombol menyesuaikan lebar tersisa
-        Flexible(
-          child: ElevatedButton.icon(
-            onPressed: () {},
+          ElevatedButton.icon(
+            onPressed: () => _showAddEventSheet(context, c),
             icon: const Icon(Icons.add, size: 16),
-            label: const Text('Create', style: TextStyle(fontSize: 12)),
+            label: const Text('Create\nEvent',
+                style: TextStyle(fontSize: 11, height: 1.2)),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14)),
+              elevation: 0,
             ),
           ),
-        )
-      ],
+        ],
+      ),
     );
   }
 
-  Widget _buildQuickStats() {
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 2,
-      childAspectRatio: 2.8, // Sedikit diperlebar agar tidak sesak
-      mainAxisSpacing: 12,
-      crossAxisSpacing: 12,
-      children: [
-        _buildStatCard('Active', '12', AppColors.primary),
-        _buildStatCard('Upcoming', '05', AppColors.secondary),
-        _buildStatCard('Attendees', '1.2k', AppColors.primary),
-        _buildStatCard('Capacity', '88%', const Color(0xFF364B3F)),
-      ],
+  // ── Stats ──────────────────────────────────────────────
+  Widget _buildStats(EventController c) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        children: [
+          Expanded(
+              child: _statCard('Active', c.activeCount.toString(),
+                  AppColors.primary)),
+          const SizedBox(width: 10),
+          Expanded(
+              child: _statCard('Upcoming', c.upcomingCount.toString(),
+                  AppColors.secondary)),
+        ],
+      ),
     );
   }
 
-  Widget _buildStatCard(String label, String value, Color textColor) {
+  Widget _statCard(String label, String value, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(16),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(4, 4)),
-          const BoxShadow(color: Colors.white, blurRadius: 10, offset: Offset(-4, -4)),
+          BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2)),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(label, style: const TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.bold)),
-          Text(value, style: TextStyle(color: textColor, fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(label,
+              style: const TextStyle(color: AppColors.outline, fontSize: 11)),
+          const SizedBox(height: 4),
+          Text(value,
+              style: TextStyle(
+                  color: color, fontSize: 22, fontWeight: FontWeight.bold)),
         ],
       ),
     );
   }
 
-  Widget _buildSearchAndFilter() {
-    return Row(
-      children: [
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF0EDE9).withOpacity(0.5),
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 4,
-                    offset: const Offset(2, 2)
-                ),
-              ],
-            ),
-            child: const TextField(
-              decoration: InputDecoration(
-                hintText: 'Search events...',
-                border: InputBorder.none,
-                icon: Icon(Icons.search, color: Colors.grey, size: 20),
-              ),
-            ),
+  // ── Search ─────────────────────────────────────────────
+  Widget _buildSearch(EventController c) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2)),
+          ],
+        ),
+        child: TextField(
+          onChanged: (v) => c.searchQuery.value = v,
+          decoration: const InputDecoration(
+            hintText: 'Search events...',
+            hintStyle: TextStyle(color: AppColors.muted, fontSize: 13),
+            prefixIcon:
+                Icon(Icons.search, color: AppColors.muted, size: 20),
+            border: InputBorder.none,
+            contentPadding:
+                EdgeInsets.symmetric(vertical: 14, horizontal: 16),
           ),
         ),
-        const SizedBox(width: 12),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: AppColors.background,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(4, 4))],
-          ),
-          child: const Icon(Icons.tune, color: AppColors.primary, size: 20),
-        )
-      ],
+      ),
     );
   }
 
-  Widget _buildEventList() {
-    return ListView(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      children: [
-        _buildEventCard(
-          'Bersih Desa Slametan',
-          'Aug 15, 2024',
-          'Balai Adat Bajulan',
-          'Ritual',
-          'Confirmed',
-          AppColors.primary,
-          'https://placehold.co/200x200/2D4236/white.png?text=Ritual',
-        ),
-        const SizedBox(height: 16),
-        _buildEventCard(
-          'Malam Gamelan',
-          'Sept 02, 2024',
-          'Pendopo Timur',
-          'Musical',
-          'Draft',
-          Colors.grey,
-          'https://placehold.co/200x200/8C6A43/white.png?text=Gamelan',
-        ),
-      ],
+  // ── Add Event Bottom Sheet ─────────────────────────────
+  void _showAddEventSheet(BuildContext context, EventController c) {
+    c.clearForm();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _AddEventSheet(c: c),
     );
   }
+}
 
-  Widget _buildEventCard(String title, String date, String loc, String tag, String status, Color statusColor, String imgUrl) {
+// ── Event Card ─────────────────────────────────────────────
+class _EventCard extends StatelessWidget {
+  final EventModel event;
+  final EventController c;
+  const _EventCard({required this.event, required this.c});
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(24),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 15, offset: const Offset(8, 8)),
-          const BoxShadow(color: Colors.white, blurRadius: 15, offset: Offset(-8, -8)),
+          BoxShadow(
+              color: Colors.black.withValues(alpha: 0.06),
+              blurRadius: 12,
+              offset: const Offset(0, 4)),
         ],
       ),
-      child: Row(
+      clipBehavior: Clip.antiAlias,
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: Image.network(
-              imgUrl,
-              width: 70,
-              height: 70,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => Container(width: 70, height: 70, color: Colors.grey[300]),
-            ),
+          // Image
+          Stack(
+            children: [
+              SizedBox(
+                width: double.infinity,
+                height: 160,
+                child: event.imageUrl != null
+                    ? Image.network(
+                        event.imageUrl!,
+                        width: double.infinity,
+                        height: 160,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => _imagePlaceholder(),
+                        loadingBuilder: (_, child, progress) {
+                          if (progress == null) return child;
+                          return Container(
+                            color: const Color(0xFFF0EDE9),
+                            child: const Center(
+                              child: CircularProgressIndicator(
+                                  color: AppColors.primary, strokeWidth: 2),
+                            ),
+                          );
+                        },
+                      )
+                    : _imagePlaceholder(),
+              ),
+              // Action buttons
+              Positioned(
+                top: 10,
+                right: 10,
+                child: Row(
+                  children: [
+                    _actionBtn(Icons.edit_outlined,
+                        () => _showEditSheet(context)),
+                    const SizedBox(width: 6),
+                    _actionBtn(Icons.delete_outline,
+                        () => _confirmDelete(context)),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 16),
-          // 3. Expanded di sini sangat penting agar teks tidak mendorong keluar layar
-          Expanded(
+          // Content
+          Padding(
+            padding: const EdgeInsets.all(14),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
-                      child: Text(tag, style: TextStyle(color: AppColors.primary, fontSize: 8, fontWeight: FontWeight.bold)),
+                // Package tag
+                if (event.packageName.isNotEmpty)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.secondary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(20),
                     ),
-                    const Icon(Icons.more_vert, size: 18, color: Colors.grey),
-                  ],
-                ),
-                const SizedBox(height: 4),
+                    child: Text(
+                      event.packageName.toUpperCase(),
+                      style: const TextStyle(
+                        color: AppColors.secondary,
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                // Name
                 Text(
-                  title,
-                  style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 15),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  event.name,
+                  style: const TextStyle(
+                    color: AppColors.primary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 8),
+                // Date & Location
                 Row(
                   children: [
-                    const Icon(Icons.calendar_today, size: 12, color: Colors.grey),
+                    const Icon(Icons.calendar_today_outlined,
+                        size: 12, color: AppColors.outline),
                     const SizedBox(width: 4),
-                    // Wrap dengan Flexible agar teks tanggal tidak overflow
-                    Flexible(child: Text(date, style: const TextStyle(color: Colors.grey, fontSize: 10), overflow: TextOverflow.ellipsis)),
+                    Text(
+                      _formatDate(event.eventDate),
+                      style: const TextStyle(
+                          color: AppColors.outline, fontSize: 12),
+                    ),
+                    const SizedBox(width: 12),
+                    const Icon(Icons.location_on_outlined,
+                        size: 12, color: AppColors.outline),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        event.location,
+                        style: const TextStyle(
+                            color: AppColors.outline, fontSize: 12),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
+                // Status
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    _buildAvatarStack(),
-                    Text(status, style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 10)),
+                    _statusBadge(event.status),
                   ],
-                )
+                ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildAvatarStack() {
-    return SizedBox(
-      width: 50,
-      height: 20,
-      child: Stack(
+  Widget _actionBtn(IconData icon, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.9),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(icon, size: 16, color: AppColors.primary),
+      ),
+    );
+  }
+
+  Widget _imagePlaceholder() {
+    return Container(
+      width: double.infinity,
+      height: 160,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.primary.withValues(alpha: 0.85),
+            AppColors.secondary.withValues(alpha: 0.7),
+          ],
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Positioned(left: 0, child: CircleAvatar(radius: 9, backgroundColor: Colors.grey)),
-          const Positioned(left: 10, child: CircleAvatar(radius: 9, backgroundColor: Colors.blueGrey)),
-          Positioned(
-            left: 20,
-            child: CircleAvatar(
-              radius: 9,
-              backgroundColor: AppColors.secondary,
-              child: const Text('+45', style: TextStyle(color: Colors.white, fontSize: 6, fontWeight: FontWeight.bold)),
-            ),
+          const Icon(Icons.event_outlined, color: Colors.white54, size: 48),
+          const SizedBox(height: 8),
+          Text(
+            event.name,
+            style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 13,
+                fontWeight: FontWeight.w500),
+            textAlign: TextAlign.center,
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _statusBadge(String status) {
+    Color color;
+    Color bg;
+    switch (status) {
+      case 'ongoing':
+        color = Colors.green;
+        bg = Colors.green.withValues(alpha: 0.1);
+        break;
+      case 'upcoming':
+        color = AppColors.secondary;
+        bg = AppColors.secondary.withValues(alpha: 0.1);
+        break;
+      case 'done':
+        color = Colors.grey;
+        bg = Colors.grey.withValues(alpha: 0.1);
+        break;
+      case 'cancelled':
+        color = AppColors.error;
+        bg = AppColors.error.withValues(alpha: 0.1);
+        break;
+      default:
+        color = AppColors.outline;
+        bg = AppColors.muted.withValues(alpha: 0.1);
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      decoration: BoxDecoration(
+          color: bg, borderRadius: BorderRadius.circular(20)),
+      child: Text(
+        _statusLabel(status),
+        style: TextStyle(
+            color: color, fontSize: 11, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  String _statusLabel(String s) {
+    switch (s) {
+      case 'ongoing': return 'Ongoing';
+      case 'upcoming': return 'Upcoming';
+      case 'done': return 'Done';
+      case 'cancelled': return 'Cancelled';
+      default: return s;
+    }
+  }
+
+  String _formatDate(String date) {
+    try {
+      final d = DateTime.parse(date);
+      return DateFormat('d MMM yyyy', 'id_ID').format(d);
+    } catch (_) {
+      return date;
+    }
+  }
+
+  void _showEditSheet(BuildContext context) {
+    c.fillFormForEdit(event);
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _AddEventSheet(c: c, editId: event.id),
+    );
+  }
+
+  void _confirmDelete(BuildContext context) {
+    Get.dialog(AlertDialog(
+      title: const Text('Hapus Event?'),
+      content: Text('"${event.name}" akan dihapus permanen.'),
+      actions: [
+        TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('Batal',
+                style: TextStyle(color: AppColors.outline))),
+        TextButton(
+            onPressed: () {
+              Get.back();
+              c.delete(event.id);
+            },
+            child: const Text('Hapus',
+                style: TextStyle(color: AppColors.error))),
+      ],
+    ));
+  }
+}
+
+// ── Add/Edit Event Bottom Sheet ────────────────────────────
+class _AddEventSheet extends StatelessWidget {
+  final EventController c;
+  final int? editId; // null = tambah, ada nilai = edit
+  const _AddEventSheet({required this.c, this.editId});
+
+  bool get isEdit => editId != null;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: EdgeInsets.fromLTRB(
+          24, 20, 24, MediaQuery.of(context).viewInsets.bottom + 24),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.muted,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(isEdit ? 'Edit Event' : 'Tambah Event',
+                style: const TextStyle(
+                    color: AppColors.primary,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold)),
+            const SizedBox(height: 20),
+
+            _label('Nama Event *'),
+            _field(c.nameCtrl, 'Contoh: Bersih Desa Festival'),
+            const SizedBox(height: 14),
+
+            _label('Deskripsi'),
+            _field(c.descCtrl, 'Deskripsi event...', maxLines: 3),
+            const SizedBox(height: 14),
+
+            _label('Lokasi'),
+            _field(c.locationCtrl, 'Contoh: Balai Adat Bajulan'),
+            const SizedBox(height: 14),
+
+            // Image picker
+            _label('Foto Event (opsional)'),
+            Obx(() => GestureDetector(
+                  onTap: c.pickImage,
+                  child: Container(
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF5F2ED),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                          color: AppColors.muted.withValues(alpha: 0.5)),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: c.selectedImage.value != null
+                        ? Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              Image.file(
+                                File(c.selectedImage.value!.path),
+                                fit: BoxFit.cover,
+                              ),
+                              Positioned(
+                                top: 6,
+                                right: 6,
+                                child: GestureDetector(
+                                  onTap: () => c.selectedImage.value = null,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: const BoxDecoration(
+                                      color: Colors.black54,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(Icons.close,
+                                        color: Colors.white, size: 14),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                        : const Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.add_photo_alternate_outlined,
+                                  color: AppColors.muted, size: 32),
+                              SizedBox(height: 6),
+                              Text('Pilih foto dari galeri',
+                                  style: TextStyle(
+                                      color: AppColors.muted, fontSize: 12)),
+                            ],
+                          ),
+                  ),
+                )),
+            const SizedBox(height: 14),
+
+            _label('Tanggal Event *'),
+            Obx(() => GestureDetector(
+                  onTap: () => c.pickDate(context),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF5F2ED),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.calendar_today_outlined,
+                            color: AppColors.primary, size: 18),
+                        const SizedBox(width: 10),
+                        Text(
+                          c.selectedDate.value != null
+                              ? DateFormat('dd/MM/yyyy')
+                                  .format(c.selectedDate.value!)
+                              : 'Pilih tanggal',
+                          style: TextStyle(
+                            color: c.selectedDate.value != null
+                                ? AppColors.onSurface
+                                : AppColors.muted,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )),
+            const SizedBox(height: 14),
+
+            _label('Status'),
+            Obx(() => DropdownButtonFormField<String>(
+                  value: c.selectedStatus.value,
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: const Color(0xFFF5F2ED),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 14),
+                  ),
+                  items: const [
+                    DropdownMenuItem(
+                        value: 'upcoming', child: Text('Upcoming')),
+                    DropdownMenuItem(
+                        value: 'ongoing', child: Text('Ongoing')),
+                    DropdownMenuItem(value: 'done', child: Text('Done')),
+                    DropdownMenuItem(
+                        value: 'cancelled', child: Text('Cancelled')),
+                  ],
+                  onChanged: (v) => c.selectedStatus.value = v!,
+                )),
+            const SizedBox(height: 24),
+
+            Obx(() => SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton(
+                    onPressed: c.isSubmitting.value
+                        ? null
+                        : () => isEdit ? c.updateEvent(editId!) : c.store,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor:
+                          AppColors.primary.withValues(alpha: 0.5),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
+                      elevation: 0,
+                    ),
+                    child: c.isSubmitting.value
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                                color: Colors.white, strokeWidth: 2))
+                        : Text(isEdit ? 'Simpan Perubahan' : 'Simpan Event',
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 15)),
+                  ),
+                )),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _label(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Text(text,
+          style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppColors.onSurface)),
+    );
+  }
+
+  Widget _field(TextEditingController ctrl, String hint,
+      {int maxLines = 1}) {
+    return Container(
+      decoration: BoxDecoration(
+          color: const Color(0xFFF5F2ED),
+          borderRadius: BorderRadius.circular(12)),
+      child: TextField(
+        controller: ctrl,
+        maxLines: maxLines,
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle:
+              const TextStyle(color: AppColors.muted, fontSize: 13),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.all(14),
+        ),
       ),
     );
   }

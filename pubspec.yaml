@@ -1,5 +1,5 @@
 name: bajulan_mobile
-description: "A new Flutter project for Kampung Adat Bajulan."
+description: "Aplikasi mobile Kampung Adat Bajulan."
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -11,11 +11,15 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^1.0.8
-
-  # --- TAMBAHAN WAJIB ---
-  get: ^4.6.6              # Untuk State Management (Controller) yang kita bahas
-  google_fonts: ^6.1.0     # Agar lebih mudah panggil Plus Jakarta Sans tanpa download manual
-  http: ^1.1.0             # Untuk koneksi ke database Laravel kamu nanti
+  get: ^4.6.6
+  get_storage: ^2.1.1
+  google_fonts: ^6.1.0
+  http: ^1.1.0
+  webview_flutter: ^4.7.0
+  cached_network_image: ^3.3.1
+  intl: ^0.19.0
+  url_launcher: ^6.2.5
+  image_picker: ^1.1.2
 
 dev_dependencies:
   flutter_test:
@@ -24,20 +28,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-
-  # --- SETUP ASSET ---
-  # Pastikan kamu buat folder 'assets/images/' di root project
   assets:
     - assets/images/
-
-#  # --- SETUP FONT (Sesuai Design System kamu) ---
-#  fonts:
-#    - family: Plus Jakarta Sans
-#      fonts:
-#        - asset: fonts/PlusJakartaSans-Regular.ttf
-#        - asset: fonts/PlusJakartaSans-Medium.ttf
-#          weight: 500
-#        - asset: fonts/PlusJakartaSans-SemiBold.ttf
-#          weight: 600
-#        - asset: fonts/PlusJakartaSans-Bold.ttf
-#          weight: 700
