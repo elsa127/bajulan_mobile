@@ -1,3 +1,5 @@
+const _baseStorageUrl = 'https://kampungadatbajulan.pbltifnganjuk.com/storage/';
+
 class EventModel {
   final int id;
   final String name;
@@ -28,11 +30,16 @@ class EventModel {
   });
 
   // URL gambar lengkap dari storage Laravel
+  // Backend store dengan: $request->file('image')->store('events', 'public')
+  // Hasil path: "events/namafile.jpg" → akses via /storage/events/namafile.jpg
   String? get imageUrl {
+    // Cek full_url dulu (jika backend nanti tambahkan accessor)
     if (fullUrl != null && fullUrl!.isNotEmpty) return fullUrl;
+    // imagePath berisi nilai seperti "events/abc.jpg"
     if (imagePath == null || imagePath!.isEmpty) return null;
     if (imagePath!.startsWith('http')) return imagePath;
-    return 'https://kampungadatbajulan.pbltifnganjuk.com/storage/$imagePath';
+    final clean = imagePath!.startsWith('/') ? imagePath!.substring(1) : imagePath!;
+    return 'https://kampungadatbajulan.pbltifnganjuk.com/storage/$clean';
   }
 
   String get packageName =>
@@ -50,6 +57,11 @@ class EventModel {
   }
 
   factory EventModel.fromJson(Map<String, dynamic> json) {
+    // Backend field: image_path = "events/namafile.jpg"
+    // Backend TIDAK punya full_url accessor, jadi rawFullUrl akan selalu null
+    final rawImagePath = json['image_path'] as String?;
+    final rawFullUrl = json['full_url'] as String?;
+
     return EventModel(
       id: _parseInt(json['id']) ?? 0,
       name: json['name'] as String? ?? '',
@@ -59,8 +71,8 @@ class EventModel {
       endTime: json['end_time'] as String?,
       location: json['location'] as String? ?? '',
       status: json['status'] as String? ?? 'upcoming',
-      imagePath: json['image_path'] as String?,
-      fullUrl: json['full_url'] as String?,
+      imagePath: rawImagePath,
+      fullUrl: rawFullUrl,
       packageId: _parseInt(json['package_id']),
       package: json['package'] as Map<String, dynamic>?,
     );

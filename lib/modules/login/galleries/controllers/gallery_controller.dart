@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import '../../../../app/data/api_service.dart';
 import '../../../../app/data/models/gallery_model.dart';
@@ -23,6 +24,17 @@ class GalleryController extends GetxController {
       final res = await _api.get('/admin/galleries');
       final raw = res['data'] ?? res['galleries'] ?? [];
       final list = raw is List ? raw.cast<Map<String, dynamic>>() : <Map<String, dynamic>>[];
+      // DEBUG: print field gambar dari item pertama
+      if (list.isNotEmpty) {
+        final first = list.first;
+        debugPrint('[GalleryController] Sample keys: ${first.keys.toList()}');
+        debugPrint('[GalleryController] image_url: ${first['image_url']}');
+        debugPrint('[GalleryController] image_path: ${first['image_path']}');
+        debugPrint('[GalleryController] full_url: ${first['full_url']}');
+        debugPrint('[GalleryController] url: ${first['url']}');
+        debugPrint('[GalleryController] file_path: ${first['file_path']}');
+        debugPrint('[GalleryController] path: ${first['path']}');
+      }
       galleries.value = list.map((e) => GalleryModel.fromJson(e)).toList();
     } catch (e) {
       error.value = e.toString().replaceFirst('Exception: ', '');

@@ -236,22 +236,11 @@ class _EventCard extends StatelessWidget {
                 width: double.infinity,
                 height: 160,
                 child: event.imageUrl != null
-                    ? Image.network(
-                        event.imageUrl!,
+                    ? AppNetworkImage(
+                        url: event.imageUrl,
                         width: double.infinity,
                         height: 160,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _imagePlaceholder(),
-                        loadingBuilder: (_, child, progress) {
-                          if (progress == null) return child;
-                          return Container(
-                            color: const Color(0xFFF0EDE9),
-                            child: const Center(
-                              child: CircularProgressIndicator(
-                                  color: AppColors.primary, strokeWidth: 2),
-                            ),
-                          );
-                        },
                       )
                     : _imagePlaceholder(),
               ),
@@ -621,27 +610,25 @@ class _AddEventSheet extends StatelessWidget {
             const SizedBox(height: 14),
 
             _label('Status'),
-            Obx(() => DropdownButtonFormField<String>(
-                  value: c.selectedStatus.value,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: const Color(0xFFF5F2ED),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none),
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 14),
+            Obx(() => Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5F2ED),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  items: const [
-                    DropdownMenuItem(
-                        value: 'upcoming', child: Text('Upcoming')),
-                    DropdownMenuItem(
-                        value: 'ongoing', child: Text('Ongoing')),
-                    DropdownMenuItem(value: 'done', child: Text('Done')),
-                    DropdownMenuItem(
-                        value: 'cancelled', child: Text('Cancelled')),
-                  ],
-                  onChanged: (v) => c.selectedStatus.value = v!,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: DropdownButton<String>(
+                    value: c.selectedStatus.value,
+                    isExpanded: true,
+                    underline: const SizedBox.shrink(),
+                    borderRadius: BorderRadius.circular(12),
+                    items: const [
+                      DropdownMenuItem(value: 'upcoming', child: Text('Upcoming')),
+                      DropdownMenuItem(value: 'ongoing', child: Text('Ongoing')),
+                      DropdownMenuItem(value: 'done', child: Text('Done')),
+                      DropdownMenuItem(value: 'cancelled', child: Text('Cancelled')),
+                    ],
+                    onChanged: (v) => c.selectedStatus.value = v!,
+                  ),
                 )),
             const SizedBox(height: 24),
 
@@ -651,7 +638,13 @@ class _AddEventSheet extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: c.isSubmitting.value
                         ? null
-                        : () => isEdit ? c.updateEvent(editId!) : c.store,
+                        : () {
+                            if (isEdit) {
+                              c.updateEvent(editId!);
+                            } else {
+                              c.store();
+                            }
+                          },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,

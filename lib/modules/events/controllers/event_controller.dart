@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
@@ -51,6 +52,15 @@ class EventController extends GetxController {
       final list = raw is List
           ? raw.cast<Map<String, dynamic>>()
           : <Map<String, dynamic>>[];
+      // DEBUG: print field gambar dari item pertama
+      if (list.isNotEmpty) {
+        final first = list.first;
+        debugPrint('[EventController] Sample keys: ${first.keys.toList()}');
+        debugPrint('[EventController] image_path: ${first['image_path']}');
+        debugPrint('[EventController] full_url: ${first['full_url']}');
+        debugPrint('[EventController] image_url: ${first['image_url']}');
+        debugPrint('[EventController] image: ${first['image']}');
+      }
       events.value = list.map((e) => EventModel.fromJson(e)).toList();
     } catch (e) {
       error.value = e.toString().replaceFirst('Exception: ', '');
