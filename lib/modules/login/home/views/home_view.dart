@@ -106,12 +106,12 @@ class HomeView extends StatelessWidget {
 
   Widget _buildCategories(HomeController c) {
     final cats = [
-      {'key': 'all', 'label': 'Semua'},
-      {'key': 'kampung_adat', 'label': 'Kampung Adat'},
-      {'key': 'budaya_seni', 'label': 'Budaya & Seni'},
-      {'key': 'edukasi_durian', 'label': 'Edukasi Durian'},
-      {'key': 'pendakian', 'label': 'Pendakian'},
-      {'key': 'trabas', 'label': 'Trabas'},
+      {'key': 'all', 'label': 'Semua Paket'},
+      {'key': 'kampung_adat', 'label': 'Budaya'},
+      {'key': 'pendakian', 'label': 'Alam'},
+      {'key': 'budaya_seni', 'label': 'Ritual'},
+      {'key': 'edukasi_durian', 'label': 'Kuliner'},
+      {'key': 'trabas', 'label': 'Petualangan'},
     ];
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16),

@@ -29,17 +29,15 @@ class EventModel {
     this.package,
   });
 
-  // URL gambar lengkap dari storage Laravel
-  // Backend store dengan: $request->file('image')->store('events', 'public')
-  // Hasil path: "events/namafile.jpg" → akses via /storage/events/namafile.jpg
+  // URL gambar lengkap dari uploads
   String? get imageUrl {
-    // Cek full_url dulu (jika backend nanti tambahkan accessor)
+    // Cek full_url dulu (dari backend accessor)
     if (fullUrl != null && fullUrl!.isNotEmpty) return fullUrl;
     // imagePath berisi nilai seperti "events/abc.jpg"
     if (imagePath == null || imagePath!.isEmpty) return null;
     if (imagePath!.startsWith('http')) return imagePath;
     final clean = imagePath!.startsWith('/') ? imagePath!.substring(1) : imagePath!;
-    return 'https://kampungadatbajulan.pbltifnganjuk.com/storage/$clean';
+    return 'https://kampungadatbajulan.pbltifnganjuk.com/uploads/$clean';
   }
 
   String get packageName =>

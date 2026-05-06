@@ -1,123 +1,106 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../app/data/api_service.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 import 'package:http/http.dart' as http;
+import '../../../app/data/api_service.dart';
 
 class PackageController extends GetxController {
   final _api = Get.find<ApiService>();
+  final _picker = ImagePicker();
 
-  // --- FORM CONTROLLER ---
   final nameCtrl = TextEditingController();
   final priceCtrl = TextEditingController();
   final minPeopleCtrl = TextEditingController();
   final descCtrl = TextEditingController();
   final termsCtrl = TextEditingController();
 
-  // --- STATE ---
   var selectedCategory = 'kampung_adat'.obs;
   var includeLunch = false.obs;
   var includeGuide = false.obs;
   var isLoading = false.obs;
-  var selectedImage = Rx<File?>(null);
+  var coverImageFile = Rxn<XFile>(); // XFile support web & mobile
 
-  // --- CATEGORY LIST ---
   final categories = [
-    {'key': 'kampung_adat', 'label': 'Kampung Adat'},
-    {'key': 'budaya_seni', 'label': 'Budaya & Seni'},
-    {'key': 'edukasi_durian', 'label': 'Edukasi Durian'},
-    {'key': 'pendakian', 'label': 'Pendakian'},
-    {'key': 'trabas', 'label': 'Trabas'},
+    {'key': 'kampung_adat', 'label': 'Budaya'},
+    {'key': 'budaya_seni', 'label': 'Ritual'},
+    {'key': 'edukasi_durian', 'label': 'Kuliner'},
+    {'key': 'pendakian', 'label': 'Alam'},
+    {'key': 'trabas', 'label': 'Petualangan'},
   ];
 
-  // --- PICK IMAGE ---
-  Future<void> pickImage() async {
-    final picker = ImagePicker();
-    final picked = await picker.pickImage(source: ImageSource.gallery);
+  // Alias untuk backward compat dengan add_package_view lama
+  XFile? get selectedImage => coverImageFile.value;
 
-    if (picked != null) {
-      selectedImage.value = File(picked.path);
-    }
+  Future<void> pickImage() async {
+    final picked = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+      maxWidth: 1200,
+    );
+    if (picked != null) coverImageFile.value = picked;
   }
 
-  // --- SAVE DATA ---
   Future<void> save() async {
     if (nameCtrl.text.trim().isEmpty) {
-      Get.snackbar(
-        'Oops!',
-        'Nama paket harus diisi.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.orange,
-        colorText: Colors.white,
-      );
+      Get.snackbar('Oops!', 'Nama paket harus diisi.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.orange,
+          colorText: Colors.white);
       return;
     }
 
     isLoading.value = true;
-
     try {
-      List<http.MultipartFile> files = [];
+      final fields = {
+        'name': nameCtrl.text.trim(),
+        'description': descCtrl.text.trim(),
+        'terms': termsCtrl.text.trim(),
+        'price_per_person':
+            (int.tryParse(priceCtrl.text.replaceAll('.', '')) ?? 0).toString(),
+        'min_person': (int.tryParse(minPeopleCtrl.text) ?? 1).toString(),
+        'category': selectedCategory.value,
+        'status': 'active',
+      };
 
-      if (selectedImage.value != null) {
-        files.add(
-          await http.MultipartFile.fromPath(
-            'cover_image',
-            selectedImage.value!.path,
-          ),
-        );
+      final files = <http.MultipartFile>[];
+      if (coverImageFile.value != null) {
+        final bytes = await coverImageFile.value!.readAsBytes();
+        files.add(http.MultipartFile.fromBytes(
+          'cover_image',
+          bytes,
+          filename: coverImageFile.value!.name,
+        ));
       }
 
-      await _api.postMultipart(
-        '/admin/packages',
-        fields: {
-          'name': nameCtrl.text.trim(),
-          'description': descCtrl.text.trim(),
-          'terms': termsCtrl.text.trim(),
-          'price_per_person': (int.tryParse(
-              priceCtrl.text.replaceAll('.', '')) ??
-              0)
-              .toString(),
-          'min_person':
-          (int.tryParse(minPeopleCtrl.text) ?? 1).toString(),
-          'category': selectedCategory.value,
-        },
-        files: files,
-      );
+      await _api.postMultipart('/admin/packages',
+          fields: fields, files: files.isEmpty ? null : files);
 
-      Get.snackbar(
-        'Sukses',
-        'Paket berhasil ditambahkan!',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
+      Get.snackbar('Sukses', 'Paket berhasil ditambahkan!',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white);
 
       Future.delayed(const Duration(seconds: 1), () {
         clearForm();
         Get.back();
       });
     } catch (e) {
-      Get.snackbar(
-        'Gagal',
-        e.toString().replaceFirst('Exception: ', ''),
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.redAccent,
-        colorText: Colors.white,
-      );
+      Get.snackbar('Gagal', e.toString().replaceFirst('Exception: ', ''),
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white);
     } finally {
       isLoading.value = false;
     }
   }
 
-  // --- RESET FORM ---
   void clearForm() {
     nameCtrl.clear();
     priceCtrl.clear();
     minPeopleCtrl.clear();
     descCtrl.clear();
     termsCtrl.clear();
-    selectedImage.value = null;
+    coverImageFile.value = null;
     selectedCategory.value = 'kampung_adat';
     includeLunch.value = false;
     includeGuide.value = false;

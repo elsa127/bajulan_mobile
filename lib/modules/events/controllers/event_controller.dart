@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:http/http.dart' as http;
 import '../../../app/data/api_service.dart';
 import '../../../app/data/models/event_model.dart';
 
@@ -15,14 +12,13 @@ class EventController extends GetxController {
   var error = ''.obs;
   var searchQuery = ''.obs;
 
-  // Form fields untuk tambah/edit event
+  // Form fields
   final nameCtrl = TextEditingController();
   final descCtrl = TextEditingController();
   final locationCtrl = TextEditingController();
   final dateCtrl = TextEditingController();
   var selectedStatus = 'upcoming'.obs;
   var selectedDate = Rxn<DateTime>();
-  var selectedImage = Rxn<XFile>(); // gambar yang dipilih
 
   List<EventModel> get filtered {
     if (searchQuery.value.isEmpty) return events;
@@ -32,10 +28,8 @@ class EventController extends GetxController {
         .toList();
   }
 
-  int get activeCount =>
-      events.where((e) => e.status == 'ongoing').length;
-  int get upcomingCount =>
-      events.where((e) => e.status == 'upcoming').length;
+  int get activeCount => events.where((e) => e.status == 'ongoing').length;
+  int get upcomingCount => events.where((e) => e.status == 'upcoming').length;
 
   @override
   void onInit() {
@@ -52,31 +46,12 @@ class EventController extends GetxController {
       final list = raw is List
           ? raw.cast<Map<String, dynamic>>()
           : <Map<String, dynamic>>[];
-      // DEBUG: print field gambar dari item pertama
-      if (list.isNotEmpty) {
-        final first = list.first;
-        debugPrint('[EventController] Sample keys: ${first.keys.toList()}');
-        debugPrint('[EventController] image_path: ${first['image_path']}');
-        debugPrint('[EventController] full_url: ${first['full_url']}');
-        debugPrint('[EventController] image_url: ${first['image_url']}');
-        debugPrint('[EventController] image: ${first['image']}');
-      }
       events.value = list.map((e) => EventModel.fromJson(e)).toList();
     } catch (e) {
       error.value = e.toString().replaceFirst('Exception: ', '');
     } finally {
       isLoading.value = false;
     }
-  }
-
-  Future<void> pickImage() async {
-    final picker = ImagePicker();
-    final file = await picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 80,
-      maxWidth: 1200,
-    );
-    if (file != null) selectedImage.value = file;
   }
 
   Future<void> store() async {
@@ -90,28 +65,14 @@ class EventController extends GetxController {
 
     isSubmitting.value = true;
     try {
-      final date = selectedDate.value!;
-      final dateStr =
-          '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-
-      // Pakai postMultipart karena backend support upload image
-      final files = <http.MultipartFile>[];
-      if (selectedImage.value != null) {
-        files.add(await http.MultipartFile.fromPath(
-          'image',
-          selectedImage.value!.path,
-        ));
-      }
-
-      await _api.postMultipart('/admin/events',
-          fields: {
-            'name': nameCtrl.text.trim(),
-            'description': descCtrl.text.trim(),
-            'event_date': dateStr,
-            'location': locationCtrl.text.trim(),
-            'status': selectedStatus.value,
-          },
-          files: files.isEmpty ? null : files);
+      final dateStr = _formatDate(selectedDate.value!);
+      await _api.post('/admin/events', {
+        'name': nameCtrl.text.trim(),
+        'description': descCtrl.text.trim(),
+        'event_date': dateStr,
+        'location': locationCtrl.text.trim(),
+        'status': selectedStatus.value,
+      });
 
       Get.back();
       fetch();
@@ -141,29 +102,14 @@ class EventController extends GetxController {
 
     isSubmitting.value = true;
     try {
-      final date = selectedDate.value!;
-      final dateStr =
-          '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-
-      final files = <http.MultipartFile>[];
-      if (selectedImage.value != null) {
-        files.add(await http.MultipartFile.fromPath(
-          'image',
-          selectedImage.value!.path,
-        ));
-      }
-
-      // Laravel pakai POST + _method=PUT untuk multipart
-      await _api.postMultipart('/admin/events/$id',
-          fields: {
-            '_method': 'PUT',
-            'name': nameCtrl.text.trim(),
-            'description': descCtrl.text.trim(),
-            'event_date': dateStr,
-            'location': locationCtrl.text.trim(),
-            'status': selectedStatus.value,
-          },
-          files: files.isEmpty ? null : files);
+      final dateStr = _formatDate(selectedDate.value!);
+      await _api.put('/admin/events/$id', {
+        'name': nameCtrl.text.trim(),
+        'description': descCtrl.text.trim(),
+        'event_date': dateStr,
+        'location': locationCtrl.text.trim(),
+        'status': selectedStatus.value,
+      });
 
       Get.back();
       fetch();
@@ -187,7 +133,6 @@ class EventController extends GetxController {
     descCtrl.text = event.description;
     locationCtrl.text = event.location;
     selectedStatus.value = event.status;
-    selectedImage.value = null;
     try {
       final date = DateTime.parse(event.eventDate);
       selectedDate.value = date;
@@ -223,7 +168,8 @@ class EventController extends GetxController {
       lastDate: DateTime(2030),
       builder: (ctx, child) => Theme(
         data: Theme.of(ctx).copyWith(
-          colorScheme: const ColorScheme.light(primary: Color(0xFF2D4236)),
+          colorScheme:
+              const ColorScheme.light(primary: Color(0xFF2D4236)),
         ),
         child: child!,
       ),
@@ -242,8 +188,10 @@ class EventController extends GetxController {
     dateCtrl.clear();
     selectedDate.value = null;
     selectedStatus.value = 'upcoming';
-    selectedImage.value = null;
   }
+
+  String _formatDate(DateTime date) =>
+      '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
 
   @override
   void onClose() {

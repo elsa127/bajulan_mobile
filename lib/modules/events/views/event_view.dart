@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -20,21 +19,20 @@ class EventView extends StatelessWidget {
       body: Column(
         children: [
           _buildHeader(context, c),
-          // Stats
           Obx(() => _buildStats(c)),
           const SizedBox(height: 12),
-          // Search
           _buildSearch(c),
           const SizedBox(height: 8),
-          // List
           Expanded(
             child: Obx(() {
               if (c.isLoading.value) {
                 return const Center(
-                    child: CircularProgressIndicator(color: AppColors.primary));
+                    child: CircularProgressIndicator(
+                        color: AppColors.primary));
               }
               if (c.error.isNotEmpty) {
-                return ErrorState(message: c.error.value, onRetry: c.fetch);
+                return ErrorState(
+                    message: c.error.value, onRetry: c.fetch);
               }
               if (c.filtered.isEmpty) {
                 return const Center(
@@ -56,10 +54,13 @@ class EventView extends StatelessWidget {
                 onRefresh: c.fetch,
                 color: AppColors.primary,
                 child: ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+                  padding:
+                      const EdgeInsets.fromLTRB(20, 8, 20, 100),
                   itemCount: c.filtered.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 16),
-                  itemBuilder: (_, i) => _EventCard(event: c.filtered[i], c: c),
+                  separatorBuilder: (_, __) =>
+                      const SizedBox(height: 16),
+                  itemBuilder: (_, i) =>
+                      _EventCard(event: c.filtered[i], c: c),
                 ),
               );
             }),
@@ -70,7 +71,6 @@ class EventView extends StatelessWidget {
     );
   }
 
-  // ── Header ─────────────────────────────────────────────
   Widget _buildHeader(BuildContext context, EventController c) {
     return Container(
       color: const Color(0xFFF5F0E8),
@@ -83,31 +83,28 @@ class EventView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Cultural Events',
-                  style: TextStyle(
-                    color: AppColors.primary,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                Text('Event Budaya',
+                    style: TextStyle(
+                        color: AppColors.primary,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold)),
                 SizedBox(height: 2),
-                Text(
-                  "Manage Bajulan's traditional festivities",
-                  style: TextStyle(color: AppColors.outline, fontSize: 12),
-                ),
+                Text('Kelola event Kampung Adat Bajulan',
+                    style: TextStyle(
+                        color: AppColors.outline, fontSize: 12)),
               ],
             ),
           ),
           ElevatedButton.icon(
-            onPressed: () => _showAddEventSheet(context, c),
+            onPressed: () => _showFormSheet(context, c),
             icon: const Icon(Icons.add, size: 16),
-            label: const Text('Create\nEvent',
+            label: const Text('Tambah\nEvent',
                 style: TextStyle(fontSize: 11, height: 1.2)),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 14, vertical: 10),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14)),
               elevation: 0,
@@ -118,19 +115,18 @@ class EventView extends StatelessWidget {
     );
   }
 
-  // ── Stats ──────────────────────────────────────────────
   Widget _buildStats(EventController c) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         children: [
           Expanded(
-              child: _statCard('Active', c.activeCount.toString(),
-                  AppColors.primary)),
+              child: _statCard(
+                  'Berlangsung', c.activeCount.toString(), AppColors.primary)),
           const SizedBox(width: 10),
           Expanded(
-              child: _statCard('Upcoming', c.upcomingCount.toString(),
-                  AppColors.secondary)),
+              child: _statCard(
+                  'Akan Datang', c.upcomingCount.toString(), AppColors.secondary)),
         ],
       ),
     );
@@ -153,17 +149,19 @@ class EventView extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(label,
-              style: const TextStyle(color: AppColors.outline, fontSize: 11)),
+              style:
+                  const TextStyle(color: AppColors.outline, fontSize: 11)),
           const SizedBox(height: 4),
           Text(value,
               style: TextStyle(
-                  color: color, fontSize: 22, fontWeight: FontWeight.bold)),
+                  color: color,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold)),
         ],
       ),
     );
   }
 
-  // ── Search ─────────────────────────────────────────────
   Widget _buildSearch(EventController c) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -181,7 +179,7 @@ class EventView extends StatelessWidget {
         child: TextField(
           onChanged: (v) => c.searchQuery.value = v,
           decoration: const InputDecoration(
-            hintText: 'Search events...',
+            hintText: 'Cari event...',
             hintStyle: TextStyle(color: AppColors.muted, fontSize: 13),
             prefixIcon:
                 Icon(Icons.search, color: AppColors.muted, size: 20),
@@ -194,14 +192,19 @@ class EventView extends StatelessWidget {
     );
   }
 
-  // ── Add Event Bottom Sheet ─────────────────────────────
-  void _showAddEventSheet(BuildContext context, EventController c) {
-    c.clearForm();
+  void _showFormSheet(BuildContext context, EventController c,
+      {EventModel? editEvent}) {
+    if (editEvent != null) {
+      c.fillFormForEdit(editEvent);
+    } else {
+      c.clearForm();
+    }
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _AddEventSheet(c: c),
+      builder: (_) =>
+          _EventFormSheet(c: c, editEvent: editEvent),
     );
   }
 }
@@ -229,104 +232,95 @@ class _EventCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Image
-          Stack(
-            children: [
-              SizedBox(
-                width: double.infinity,
-                height: 160,
-                child: event.imageUrl != null
-                    ? AppNetworkImage(
-                        url: event.imageUrl,
-                        width: double.infinity,
-                        height: 160,
-                        fit: BoxFit.cover,
-                      )
-                    : _imagePlaceholder(),
-              ),
-              // Action buttons
-              Positioned(
-                top: 10,
-                right: 10,
-                child: Row(
-                  children: [
-                    _actionBtn(Icons.edit_outlined,
-                        () => _showEditSheet(context)),
-                    const SizedBox(width: 6),
-                    _actionBtn(Icons.delete_outline,
-                        () => _confirmDelete(context)),
-                  ],
-                ),
-              ),
-            ],
-          ),
+          // Image (jika ada)
+          if (event.imageUrl != null)
+            AppNetworkImage(
+              url: event.imageUrl,
+              width: double.infinity,
+              height: 140,
+              fit: BoxFit.cover,
+            ),
           // Content
           Padding(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Package tag
-                if (event.packageName.isNotEmpty)
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.secondary.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(20),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(event.name,
+                          style: const TextStyle(
+                              color: AppColors.primary,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold)),
                     ),
-                    child: Text(
-                      event.packageName.toUpperCase(),
-                      style: const TextStyle(
-                        color: AppColors.secondary,
-                        fontSize: 9,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ),
-                // Name
-                Text(
-                  event.name,
-                  style: const TextStyle(
-                    color: AppColors.primary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                    _statusBadge(event.status),
+                  ],
                 ),
                 const SizedBox(height: 8),
-                // Date & Location
                 Row(
                   children: [
                     const Icon(Icons.calendar_today_outlined,
-                        size: 12, color: AppColors.outline),
+                        size: 13, color: AppColors.outline),
                     const SizedBox(width: 4),
-                    Text(
-                      _formatDate(event.eventDate),
-                      style: const TextStyle(
-                          color: AppColors.outline, fontSize: 12),
-                    ),
+                    Text(_formatDate(event.eventDate),
+                        style: const TextStyle(
+                            color: AppColors.outline, fontSize: 12)),
                     const SizedBox(width: 12),
                     const Icon(Icons.location_on_outlined,
-                        size: 12, color: AppColors.outline),
+                        size: 13, color: AppColors.outline),
                     const SizedBox(width: 4),
                     Expanded(
-                      child: Text(
-                        event.location,
-                        style: const TextStyle(
-                            color: AppColors.outline, fontSize: 12),
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                      child: Text(event.location,
+                          style: const TextStyle(
+                              color: AppColors.outline, fontSize: 12),
+                          overflow: TextOverflow.ellipsis),
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
-                // Status
+                if (event.description.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Text(event.description,
+                      style: const TextStyle(
+                          color: AppColors.outline, fontSize: 12),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis),
+                ],
+                const SizedBox(height: 12),
+                // Action buttons
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    _statusBadge(event.status),
+                    OutlinedButton.icon(
+                      onPressed: () => _showEditSheet(context),
+                      icon: const Icon(Icons.edit_outlined, size: 14),
+                      label: const Text('Edit',
+                          style: TextStyle(fontSize: 12)),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.primary,
+                        side: const BorderSide(color: AppColors.primary),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    OutlinedButton.icon(
+                      onPressed: () => _confirmDelete(context),
+                      icon: const Icon(Icons.delete_outline, size: 14),
+                      label: const Text('Hapus',
+                          style: TextStyle(fontSize: 12)),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.error,
+                        side: const BorderSide(color: AppColors.error),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
                   ],
                 ),
               ],
@@ -337,96 +331,44 @@ class _EventCard extends StatelessWidget {
     );
   }
 
-  Widget _actionBtn(IconData icon, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(6),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.9),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Icon(icon, size: 16, color: AppColors.primary),
-      ),
-    );
-  }
-
-  Widget _imagePlaceholder() {
-    return Container(
-      width: double.infinity,
-      height: 160,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.primary.withValues(alpha: 0.85),
-            AppColors.secondary.withValues(alpha: 0.7),
-          ],
-        ),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.event_outlined, color: Colors.white54, size: 48),
-          const SizedBox(height: 8),
-          Text(
-            event.name,
-            style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 13,
-                fontWeight: FontWeight.w500),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _statusBadge(String status) {
     Color color;
     Color bg;
+    String label;
     switch (status) {
       case 'ongoing':
         color = Colors.green;
         bg = Colors.green.withValues(alpha: 0.1);
+        label = 'Berlangsung';
         break;
       case 'upcoming':
         color = AppColors.secondary;
         bg = AppColors.secondary.withValues(alpha: 0.1);
+        label = 'Akan Datang';
         break;
       case 'done':
         color = Colors.grey;
         bg = Colors.grey.withValues(alpha: 0.1);
+        label = 'Selesai';
         break;
       case 'cancelled':
         color = AppColors.error;
         bg = AppColors.error.withValues(alpha: 0.1);
+        label = 'Dibatalkan';
         break;
       default:
         color = AppColors.outline;
         bg = AppColors.muted.withValues(alpha: 0.1);
+        label = status;
     }
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
           color: bg, borderRadius: BorderRadius.circular(20)),
-      child: Text(
-        _statusLabel(status),
-        style: TextStyle(
-            color: color, fontSize: 11, fontWeight: FontWeight.bold),
-      ),
+      child: Text(label,
+          style: TextStyle(
+              color: color, fontSize: 10, fontWeight: FontWeight.bold)),
     );
-  }
-
-  String _statusLabel(String s) {
-    switch (s) {
-      case 'ongoing': return 'Ongoing';
-      case 'upcoming': return 'Upcoming';
-      case 'done': return 'Done';
-      case 'cancelled': return 'Cancelled';
-      default: return s;
-    }
   }
 
   String _formatDate(String date) {
@@ -444,7 +386,7 @@ class _EventCard extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _AddEventSheet(c: c, editId: event.id),
+      builder: (_) => _EventFormSheet(c: c, editEvent: event),
     );
   }
 
@@ -457,25 +399,32 @@ class _EventCard extends StatelessWidget {
             onPressed: () => Get.back(),
             child: const Text('Batal',
                 style: TextStyle(color: AppColors.outline))),
-        TextButton(
-            onPressed: () {
-              Get.back();
-              c.delete(event.id);
-            },
-            child: const Text('Hapus',
-                style: TextStyle(color: AppColors.error))),
+        ElevatedButton(
+          onPressed: () {
+            Get.back();
+            c.delete(event.id);
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.error,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10)),
+          ),
+          child: const Text('Hapus'),
+        ),
       ],
     ));
   }
 }
 
-// ── Add/Edit Event Bottom Sheet ────────────────────────────
-class _AddEventSheet extends StatelessWidget {
+// ── Event Form Bottom Sheet ────────────────────────────────
+class _EventFormSheet extends StatelessWidget {
   final EventController c;
-  final int? editId; // null = tambah, ada nilai = edit
-  const _AddEventSheet({required this.c, this.editId});
+  final EventModel? editEvent;
+  const _EventFormSheet({required this.c, this.editEvent});
 
-  bool get isEdit => editId != null;
+  bool get isEdit => editEvent != null;
 
   @override
   Widget build(BuildContext context) {
@@ -497,9 +446,8 @@ class _AddEventSheet extends StatelessWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.muted,
-                  borderRadius: BorderRadius.circular(2),
-                ),
+                    color: AppColors.muted,
+                    borderRadius: BorderRadius.circular(2)),
               ),
             ),
             const SizedBox(height: 16),
@@ -520,60 +468,6 @@ class _AddEventSheet extends StatelessWidget {
 
             _label('Lokasi'),
             _field(c.locationCtrl, 'Contoh: Balai Adat Bajulan'),
-            const SizedBox(height: 14),
-
-            // Image picker
-            _label('Foto Event (opsional)'),
-            Obx(() => GestureDetector(
-                  onTap: c.pickImage,
-                  child: Container(
-                    height: 120,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF5F2ED),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                          color: AppColors.muted.withValues(alpha: 0.5)),
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: c.selectedImage.value != null
-                        ? Stack(
-                            fit: StackFit.expand,
-                            children: [
-                              Image.file(
-                                File(c.selectedImage.value!.path),
-                                fit: BoxFit.cover,
-                              ),
-                              Positioned(
-                                top: 6,
-                                right: 6,
-                                child: GestureDetector(
-                                  onTap: () => c.selectedImage.value = null,
-                                  child: Container(
-                                    padding: const EdgeInsets.all(4),
-                                    decoration: const BoxDecoration(
-                                      color: Colors.black54,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: const Icon(Icons.close,
-                                        color: Colors.white, size: 14),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          )
-                        : const Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.add_photo_alternate_outlined,
-                                  color: AppColors.muted, size: 32),
-                              SizedBox(height: 6),
-                              Text('Pilih foto dari galeri',
-                                  style: TextStyle(
-                                      color: AppColors.muted, fontSize: 12)),
-                            ],
-                          ),
-                  ),
-                )),
             const SizedBox(height: 14),
 
             _label('Tanggal Event *'),
@@ -622,10 +516,14 @@ class _AddEventSheet extends StatelessWidget {
                     underline: const SizedBox.shrink(),
                     borderRadius: BorderRadius.circular(12),
                     items: const [
-                      DropdownMenuItem(value: 'upcoming', child: Text('Upcoming')),
-                      DropdownMenuItem(value: 'ongoing', child: Text('Ongoing')),
-                      DropdownMenuItem(value: 'done', child: Text('Done')),
-                      DropdownMenuItem(value: 'cancelled', child: Text('Cancelled')),
+                      DropdownMenuItem(
+                          value: 'upcoming', child: Text('Akan Datang')),
+                      DropdownMenuItem(
+                          value: 'ongoing', child: Text('Berlangsung')),
+                      DropdownMenuItem(
+                          value: 'done', child: Text('Selesai')),
+                      DropdownMenuItem(
+                          value: 'cancelled', child: Text('Dibatalkan')),
                     ],
                     onChanged: (v) => c.selectedStatus.value = v!,
                   ),
@@ -638,13 +536,9 @@ class _AddEventSheet extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: c.isSubmitting.value
                         ? null
-                        : () {
-                            if (isEdit) {
-                              c.updateEvent(editId!);
-                            } else {
-                              c.store();
-                            }
-                          },
+                        : () => isEdit
+                            ? c.updateEvent(editEvent!.id)
+                            : c.store(),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
@@ -660,7 +554,8 @@ class _AddEventSheet extends StatelessWidget {
                             height: 22,
                             child: CircularProgressIndicator(
                                 color: Colors.white, strokeWidth: 2))
-                        : Text(isEdit ? 'Simpan Perubahan' : 'Simpan Event',
+                        : Text(
+                            isEdit ? 'Simpan Perubahan' : 'Simpan Event',
                             style: const TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 15)),
                   ),
@@ -671,16 +566,14 @@ class _AddEventSheet extends StatelessWidget {
     );
   }
 
-  Widget _label(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(text,
-          style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: AppColors.onSurface)),
-    );
-  }
+  Widget _label(String text) => Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Text(text,
+            style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColors.onSurface)),
+      );
 
   Widget _field(TextEditingController ctrl, String hint,
       {int maxLines = 1}) {

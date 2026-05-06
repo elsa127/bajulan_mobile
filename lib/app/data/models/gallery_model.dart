@@ -36,13 +36,12 @@ class GalleryModel {
     );
   }
 
-  /// Pastikan URL selalu absolute
+  /// Pastikan URL selalu absolute — pakai /uploads/ bukan /storage/
   static String _resolveUrl(String raw) {
     if (raw.isEmpty) return '';
     if (raw.startsWith('http')) return raw;
-    // Hapus leading slash jika ada agar tidak double slash
     final clean = raw.startsWith('/') ? raw.substring(1) : raw;
-    return '$_baseStorageUrl$clean';
+    return 'https://kampungadatbajulan.pbltifnganjuk.com/uploads/$clean';
   }
 
   static int? _parseInt(dynamic value) {
