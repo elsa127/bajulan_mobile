@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/data/api_service.dart';
-import '../../../app/data/models/package_model.dart';
+import 'package:bajulan_mobile/app/data/models/package_model.dart';
+
 
 class AdminPackagesController extends GetxController {
   final _api = Get.find<ApiService>();
@@ -9,6 +10,8 @@ class AdminPackagesController extends GetxController {
   var isLoading = true.obs;
   var packages = <PackageModel>[].obs;
   var error = ''.obs;
+  var selectedFilter = 'all'.obs;
+  var searchQuery = ''.obs;
 
   @override
   void onInit() {
@@ -53,5 +56,27 @@ class AdminPackagesController extends GetxController {
       return (raw['data'] as List).cast<Map<String, dynamic>>();
     }
     return [];
+  }
+
+  List<PackageModel> get filteredPackages {
+    var list = packages.toList();
+
+// SEARCH
+    if (searchQuery.value.isNotEmpty) {
+      list = list.where((p) =>
+          p.name.toLowerCase().contains(searchQuery.value.toLowerCase())
+      ).toList();
+    }
+
+// FILTER
+    if (selectedFilter.value == 'cultural') {
+      list = list.where((p) => p.category == 'budaya_seni').toList();
+    } else if (selectedFilter.value == 'nature') {
+      list = list.where((p) => p.category == 'pendakian').toList();
+    } else if (selectedFilter.value == 'adventure') {
+      list = list.where((p) => p.category == 'trabas').toList();
+    }
+
+    return list;
   }
 }

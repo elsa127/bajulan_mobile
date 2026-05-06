@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
 import '../../../app/data/api_service.dart';
-import '../../../app/data/models/package_model.dart';
+import 'package:bajulan_mobile/app/data/models/package_model.dart';
 
 class PackageDetailController extends GetxController {
   final _api = Get.find<ApiService>();

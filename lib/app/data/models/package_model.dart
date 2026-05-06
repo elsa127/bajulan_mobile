@@ -1,3 +1,5 @@
+enum PackageStatus { published, unpublished }
+
 class PackageModel {
   final int id;
   final String name;
@@ -6,8 +8,8 @@ class PackageModel {
   final int pricePerPerson;
   final int minPerson;
   final String category;
-  final String status;
-  final String? coverImage;
+  final String? image;
+  final PackageStatus status;
 
   PackageModel({
     required this.id,
@@ -17,40 +19,50 @@ class PackageModel {
     required this.pricePerPerson,
     required this.minPerson,
     required this.category,
-    required this.status,
-    this.coverImage,
+    this.image,
+    this.status = PackageStatus.published,
   });
 
-  factory PackageModel.fromJson(Map<String, dynamic> json) {
-    return PackageModel(
-      id: _parseInt(json['id']) ?? 0,
-      name: json['name'] as String? ?? '',
-      description: json['description'] as String? ?? '',
-      terms: json['terms'] as String? ?? '',
-      pricePerPerson: _parseInt(json['price_per_person']) ?? 0,
-      minPerson: _parseInt(json['min_person']) ?? 1,
-      category: json['category'] as String? ?? '',
-      status: json['status'] as String? ?? 'active',
-      coverImage: json['cover_image'] as String?,
-    );
-  }
+  // Legacy fields for some widgets that might use TravelPackage names
+  String get title => name;
+  String get price => 'Rp $pricePerPerson';
+  String get duration => '1 Hari'; // Default duration
+  int get maxPeople => minPerson + 5; // Example logic for max people
 
-  static int? _parseInt(dynamic value) {
-    if (value == null) return null;
-    if (value is int) return value;
-    if (value is String) return int.tryParse(value);
-    if (value is num) return value.toInt();
-    return null;
-  }
+  String get coverImage => image ?? 'https://picsum.photos/seed/$id/800/450';
 
   String get categoryLabel {
-    const map = {
-      'kampung_adat': 'Kampung Adat',
-      'budaya_seni': 'Budaya & Seni',
-      'edukasi_durian': 'Edukasi Durian',
-      'pendakian': 'Pendakian',
-      'trabas': 'Trabas',
-    };
-    return map[category] ?? category;
+    switch (category) {
+      case 'kampung_adat': return 'Kampung Adat';
+      case 'budaya_seni': return 'Budaya & Seni';
+      case 'edukasi_durian': return 'Edukasi Durian';
+      case 'pendakian': return 'Pendakian';
+      case 'trabas': return 'Trabas';
+      default: return 'Lainnya';
+    }
+  }
+
+  factory PackageModel.fromJson(Map<String, dynamic> json) {
+    int parseSafeInt(dynamic value) {
+      if (value is int) return value;
+      if (value is String) return int.tryParse(value) ?? 0;
+      if (value is double) return value.toInt();
+      return 0;
+    }
+
+    return PackageModel(
+      id: parseSafeInt(json['id']),
+      name: json['name']?.toString() ?? '',
+      description: json['description']?.toString() ?? '',
+      terms: json['terms']?.toString() ?? '',
+      pricePerPerson: parseSafeInt(json['price_per_person']),
+      minPerson: parseSafeInt(json['min_person'] ?? json['min_people']),
+      category: json['category']?.toString() ?? 'kampung_adat',
+      image: json['image']?.toString(),
+      status: json['is_published'] == false ? PackageStatus.unpublished : PackageStatus.published,
+    );
   }
 }
+
+// Keep TravelPackage as an alias if needed
+typedef TravelPackage = PackageModel;
