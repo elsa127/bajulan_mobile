@@ -15,6 +15,7 @@ abstract class AppRoutes {
   static const adminAddPackage = '/admin/packages/add';
   static const adminEvents = '/admin/events';
   static const adminBookings = '/admin/bookings';
+  static const adminBookingDetail = '/admin/bookings/detail';
   static const adminGalleries = '/admin/galleries';
   static const adminNotifications = '/admin/notifications';
 }

@@ -56,7 +56,7 @@ class HomeView extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Get.toNamed(AppRoutes.login),
-          child: const Text('Admin', style: TextStyle(color: Colors.white70, fontSize: 13)),
+          child: const Text('Masuk Admin', style: TextStyle(color: Colors.white70, fontSize: 13)),
         ),
       ],
     );

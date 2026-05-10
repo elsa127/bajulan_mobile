@@ -21,7 +21,7 @@ class NotificationView extends StatelessWidget {
           onPressed: () => Get.back(),
         ),
         title: const Text(
-          'Notifications',
+          'Notifikasi',
           style: TextStyle(
             color: AppColors.primary,
             fontWeight: FontWeight.bold,
@@ -32,7 +32,7 @@ class NotificationView extends StatelessWidget {
           TextButton(
             onPressed: c.markAllRead,
             child: const Text(
-              'Mark all read',
+              'Tandai semua dibaca',
               style: TextStyle(
                 color: AppColors.secondary,
                 fontSize: 13,

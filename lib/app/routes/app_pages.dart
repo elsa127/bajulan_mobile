@@ -29,6 +29,8 @@ import '../../modules/events/views/event_view.dart';
 import '../../modules/events/controllers/event_controller.dart';
 import '../../modules/bookings/views/booking_view.dart';
 import '../../modules/bookings/controllers/booking_controller.dart';
+import '../../modules/bookings/views/booking_detail_view.dart';
+import '../../modules/bookings/controllers/booking_detail_controller.dart';
 import '../../modules/login/galleries/views/gallery_view.dart';
 import '../../modules/login/galleries/controllers/gallery_controller.dart';
 import '../../modules/notifications/views/notification_view.dart';
@@ -98,6 +100,13 @@ class AppPages {
       name: AppRoutes.adminBookings,
       page: () => const BookingView(),
       binding: BindingsBuilder(() => Get.lazyPut(() => BookingController(), fenix: true)),
+      middlewares: [AuthMiddleware()],
+    ),
+    GetPage(
+      name: AppRoutes.adminBookingDetail,
+      page: () => const BookingDetailView(),
+      binding: BindingsBuilder(
+          () => Get.lazyPut(() => BookingDetailController(), fenix: true)),
       middlewares: [AuthMiddleware()],
     ),
     GetPage(

@@ -8,6 +8,16 @@ class BookingController extends GetxController {
   var isLoading = true.obs;
   var bookings = <BookingModel>[].obs;
   var error = ''.obs;
+  var selectedFilter = 'semua'.obs;
+
+  final filters = ['semua', 'paid', 'pending', 'cancelled'];
+
+  List<BookingModel> get filtered {
+    if (selectedFilter.value == 'semua') return bookings;
+    return bookings
+        .where((b) => b.status.toLowerCase() == selectedFilter.value)
+        .toList();
+  }
 
   @override
   void onInit() {

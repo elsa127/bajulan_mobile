@@ -73,14 +73,14 @@ class DashboardView extends StatelessWidget {
                 ],
 
                 // ── Ongoing Events ─────────────────────
-                _buildSectionHeader('Ongoing Events', onTap: () => Get.toNamed(AppRoutes.adminEvents)),
+                _buildSectionHeader('Event Berlangsung', onTap: () => Get.toNamed(AppRoutes.adminEvents)),
                 const SizedBox(height: 12),
                 Obx(() => _buildEventsSection(c)),
                 const SizedBox(height: 24),
 
                 // ── Recent Bookings ────────────────────
                 if (d != null && d.bookingTerbaru.isNotEmpty) ...[
-                  _buildSectionHeader('Recent Bookings'),
+                  _buildSectionHeader('Booking Terbaru'),
                   const SizedBox(height: 12),
                   ...d.bookingTerbaru.map((b) => _buildBookingItem(b)),
                 ],
@@ -321,7 +321,7 @@ class DashboardView extends StatelessWidget {
           GestureDetector(
             onTap: onTap,
             child: const Text(
-              'View all',
+              'Lihat semua',
               style: TextStyle(
                 color: AppColors.secondary,
                 fontSize: 13,
@@ -383,7 +383,7 @@ class DashboardView extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Text(
-                    'LIVE NOW',
+                    'SEDANG BERLANGSUNG',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 10,
@@ -524,7 +524,7 @@ class DashboardView extends StatelessWidget {
 
   void _confirmLogout(AuthService auth) {
     Get.dialog(AlertDialog(
-      title: const Text('Logout?'),
+      title: const Text('Keluar?'),
       content: const Text('Anda akan keluar dari panel admin.'),
       actions: [
         TextButton(
@@ -536,7 +536,7 @@ class DashboardView extends StatelessWidget {
               Get.back();
               auth.logout();
             },
-            child: const Text('Logout',
+            child: const Text('Keluar',
                 style: TextStyle(color: AppColors.error))),
       ],
     ));

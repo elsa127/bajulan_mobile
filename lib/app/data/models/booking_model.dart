@@ -11,6 +11,8 @@ class BookingModel {
   final int totalPrice;
   final String? snapToken;
   final PackageSummary? package;
+  final PaymentInfo? payment;
+  final String? createdAt;
 
   BookingModel({
     this.id,
@@ -25,6 +27,8 @@ class BookingModel {
     required this.totalPrice,
     this.snapToken,
     this.package,
+    this.payment,
+    this.createdAt,
   });
 
   factory BookingModel.fromJson(Map<String, dynamic> json) {
@@ -43,7 +47,23 @@ class BookingModel {
       package: json['package'] != null
           ? PackageSummary.fromJson(json['package'] as Map<String, dynamic>)
           : null,
+      payment: json['payment'] != null
+          ? PaymentInfo.fromJson(json['payment'] as Map<String, dynamic>)
+          : null,
+      createdAt: json['created_at'] as String?,
     );
+  }
+
+  String get statusLabel {
+    switch (status.toLowerCase()) {
+      case 'paid': return 'Lunas';
+      case 'confirmed': return 'Dikonfirmasi';
+      case 'pending': return 'Menunggu';
+      case 'cancelled': return 'Dibatalkan';
+      case 'failed': return 'Gagal';
+      case 'expired': return 'Kedaluwarsa';
+      default: return status.toUpperCase();
+    }
   }
 
   static int? _parseInt(dynamic value) {
@@ -67,6 +87,43 @@ class PackageSummary {
       id: _parseInt(json['id']) ?? 0,
       name: json['name'] as String? ?? '',
       coverImage: json['cover_image'] as String?,
+    );
+  }
+
+  static int? _parseInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is String) return int.tryParse(value);
+    if (value is num) return value.toInt();
+    return null;
+  }
+}
+
+class PaymentInfo {
+  final int? id;
+  final String? method;
+  final String? status;
+  final int? amount;
+  final String? paidAt;
+  final String? transactionId;
+
+  PaymentInfo({
+    this.id,
+    this.method,
+    this.status,
+    this.amount,
+    this.paidAt,
+    this.transactionId,
+  });
+
+  factory PaymentInfo.fromJson(Map<String, dynamic> json) {
+    return PaymentInfo(
+      id: _parseInt(json['id']),
+      method: json['payment_method'] as String? ?? json['method'] as String?,
+      status: json['status'] as String?,
+      amount: _parseInt(json['amount'] ?? json['gross_amount']),
+      paidAt: json['paid_at'] as String? ?? json['settlement_time'] as String?,
+      transactionId: json['transaction_id'] as String? ?? json['order_id'] as String?,
     );
   }
 

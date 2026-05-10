@@ -37,10 +37,10 @@ class AdminBottomNav extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _item(Icons.dashboard_outlined, 'Home', 0),
-          _item(Icons.inventory_2_outlined, 'Packages', 1),
-          _item(Icons.event_outlined, 'Events', 2),
-          _item(Icons.receipt_long_outlined, 'Bookings', 3),
+          _item(Icons.dashboard_outlined, 'Beranda', 0),
+          _item(Icons.inventory_2_outlined, 'Paket', 1),
+          _item(Icons.event_outlined, 'Event', 2),
+          _item(Icons.receipt_long_outlined, 'Pemesanan', 3),
         ],
       ),
     );
