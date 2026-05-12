@@ -56,21 +56,31 @@ class BookingModel {
 
   String get statusLabel {
     switch (status.toLowerCase()) {
-      case 'paid': return 'Lunas';
-      case 'confirmed': return 'Dikonfirmasi';
-      case 'pending': return 'Menunggu';
-      case 'cancelled': return 'Dibatalkan';
-      case 'failed': return 'Gagal';
-      case 'expired': return 'Kedaluwarsa';
-      default: return status.toUpperCase();
+      case 'paid':
+        return 'Lunas';
+      case 'confirmed':
+        return 'Dikonfirmasi';
+      case 'pending':
+        return 'Menunggu';
+      case 'cancelled':
+        return 'Dibatalkan';
+      case 'failed':
+        return 'Gagal';
+      case 'expired':
+        return 'Kedaluwarsa';
+      default:
+        return status.toUpperCase();
     }
   }
 
+  /// Handles int, double, num, and decimal strings like "50000.00"
+  /// from Laravel decimal/numeric DB columns.
   static int? _parseInt(dynamic value) {
     if (value == null) return null;
     if (value is int) return value;
-    if (value is String) return int.tryParse(value);
+    if (value is double) return value.toInt();
     if (value is num) return value.toInt();
+    if (value is String) return double.tryParse(value)?.toInt();
     return null;
   }
 }
@@ -93,8 +103,9 @@ class PackageSummary {
   static int? _parseInt(dynamic value) {
     if (value == null) return null;
     if (value is int) return value;
-    if (value is String) return int.tryParse(value);
+    if (value is double) return value.toInt();
     if (value is num) return value.toInt();
+    if (value is String) return double.tryParse(value)?.toInt();
     return null;
   }
 }
@@ -123,15 +134,17 @@ class PaymentInfo {
       status: json['status'] as String?,
       amount: _parseInt(json['amount'] ?? json['gross_amount']),
       paidAt: json['paid_at'] as String? ?? json['settlement_time'] as String?,
-      transactionId: json['transaction_id'] as String? ?? json['order_id'] as String?,
+      transactionId:
+          json['transaction_id'] as String? ?? json['order_id'] as String?,
     );
   }
 
   static int? _parseInt(dynamic value) {
     if (value == null) return null;
     if (value is int) return value;
-    if (value is String) return int.tryParse(value);
+    if (value is double) return value.toInt();
     if (value is num) return value.toInt();
+    if (value is String) return double.tryParse(value)?.toInt();
     return null;
   }
 }

@@ -21,11 +21,11 @@ class ApiService extends GetxService {
     final res = await http
         .get(Uri.parse('${AppConstants.baseUrl}$path'), headers: _headers)
         .timeout(const Duration(seconds: 30));
-    // DEBUG: log raw response untuk endpoint gambar
-    if (path.contains('events') || path.contains('galleries')) {
-      debugPrint('=== DEBUG [$path] status: ${res.statusCode} ===');
-      debugPrint(res.body.length > 1000 ? res.body.substring(0, 1000) : res.body);
-    }
+    // DEBUG: Disabled to reduce log noise
+    // if (path.contains('events') || path.contains('galleries')) {
+    //   debugPrint('=== DEBUG [$path] status: ${res.statusCode} ===');
+    //   debugPrint(res.body.length > 1000 ? res.body.substring(0, 1000) : res.body);
+    // }
     return _handle(res);
   }
 

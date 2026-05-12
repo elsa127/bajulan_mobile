@@ -22,9 +22,9 @@ class PackageController extends GetxController {
 
   final categories = [
     {'key': 'kampung_adat', 'label': 'Budaya'},
+    {'key': 'pendakian', 'label': 'Alam'},
     {'key': 'budaya_seni', 'label': 'Ritual'},
     {'key': 'edukasi_durian', 'label': 'Kuliner'},
-    {'key': 'pendakian', 'label': 'Alam'},
     {'key': 'trabas', 'label': 'Petualangan'},
   ];
 
@@ -108,11 +108,9 @@ class PackageController extends GetxController {
 
   @override
   void onClose() {
-    nameCtrl.dispose();
-    priceCtrl.dispose();
-    minPeopleCtrl.dispose();
-    descCtrl.dispose();
-    termsCtrl.dispose();
+    // TextEditingControllers are NOT disposed here because this controller
+    // uses fenix: true — GetX may recreate it, and disposing here causes
+    // "used after being disposed" errors on re-entry.
     super.onClose();
   }
 }

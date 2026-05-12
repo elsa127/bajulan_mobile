@@ -29,30 +29,51 @@ class NotificationView extends StatelessWidget {
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: c.markAllRead,
-            child: const Text(
-              'Tandai semua dibaca',
-              style: TextStyle(
-                color: AppColors.secondary,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
+          Obx(() => c.unreadCount > 0
+              ? TextButton(
+                  onPressed: c.markAllRead,
+                  child: const Text(
+                    'Tandai semua dibaca',
+                    style: TextStyle(
+                      color: AppColors.secondary,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                )
+              : const SizedBox.shrink()),
         ],
       ),
       body: Obx(() {
-        if (c.notifications.isEmpty) {
+        if (c.isLoading.value) {
           return const Center(
+            child: CircularProgressIndicator(color: AppColors.primary),
+          );
+        }
+
+        if (c.notifications.isEmpty) {
+          return Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.notifications_none_outlined,
-                    size: 56, color: AppColors.muted),
-                SizedBox(height: 12),
-                Text('Tidak ada notifikasi.',
-                    style: TextStyle(color: AppColors.outline)),
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.08),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.notifications_none_outlined,
+                      size: 56, color: AppColors.primary),
+                ),
+                const SizedBox(height: 16),
+                const Text('Tidak ada notifikasi',
+                    style: TextStyle(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16)),
+                const SizedBox(height: 6),
+                const Text('Notifikasi akan muncul di sini',
+                    style: TextStyle(color: AppColors.outline, fontSize: 13)),
               ],
             ),
           );
@@ -61,31 +82,35 @@ class NotificationView extends StatelessWidget {
         final grouped = c.grouped;
         final sections = grouped.keys.toList();
 
-        return ListView.builder(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
-          itemCount: sections.length,
-          itemBuilder: (_, si) {
-            final section = sections[si];
-            final items = grouped[section]!;
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  child: Text(
-                    section,
-                    style: const TextStyle(
-                      color: AppColors.secondary,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1,
+        return RefreshIndicator(
+          onRefresh: c.fetch,
+          color: AppColors.primary,
+          child: ListView.builder(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
+            itemCount: sections.length,
+            itemBuilder: (_, si) {
+              final section = sections[si];
+              final items = grouped[section]!;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    child: Text(
+                      section,
+                      style: const TextStyle(
+                        color: AppColors.secondary,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1,
+                      ),
                     ),
                   ),
-                ),
-                ...items.map((n) => _NotifCard(notif: n, c: c)),
-              ],
-            );
-          },
+                  ...items.map((n) => _NotifCard(notif: n, c: c)),
+                ],
+              );
+            },
+          ),
         );
       }),
     );
@@ -100,13 +125,16 @@ class _NotifCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => c.markAsRead(notif.id),
+      onTap: () => c.handleTap(notif),
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(18),
+          border: notif.isRead
+              ? null
+              : Border.all(color: AppColors.primary.withValues(alpha: 0.2), width: 1.5),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.04),

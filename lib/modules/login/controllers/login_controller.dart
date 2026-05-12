@@ -8,8 +8,8 @@ class LoginController extends GetxController {
   final _auth = Get.find<AuthService>();
   final _box = GetStorage();
 
-  final usernameCtrl = TextEditingController();
-  final passwordCtrl = TextEditingController();
+  late final TextEditingController usernameCtrl;
+  late final TextEditingController passwordCtrl;
 
   var isObscured = true.obs;
   var isLoading = false.obs;
@@ -18,6 +18,10 @@ class LoginController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    // Initialize controllers in onInit
+    usernameCtrl = TextEditingController();
+    passwordCtrl = TextEditingController();
+    
     // Load saved username jika remember me aktif
     final saved = _box.read<String>('saved_username');
     if (saved != null) {
@@ -65,8 +69,9 @@ class LoginController extends GetxController {
 
   @override
   void onClose() {
-    usernameCtrl.dispose();
-    passwordCtrl.dispose();
+    // DON'T dispose TextEditingControllers
+    // Let Dart's garbage collector handle it
+    // This prevents "used after being disposed" errors
     super.onClose();
   }
 }

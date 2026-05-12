@@ -125,11 +125,9 @@ class BookingFormController extends GetxController {
 
   @override
   void onClose() {
-    nameCtrl.dispose();
-    phoneCtrl.dispose();
-    emailCtrl.dispose();
-    notesCtrl.dispose();
-    personCtrl.dispose();
+    // TextEditingControllers are NOT disposed here because this controller
+    // uses fenix: true — GetX may recreate it, and disposing here causes
+    // "used after being disposed" errors on re-entry.
     super.onClose();
   }
 }

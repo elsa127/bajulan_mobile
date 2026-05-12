@@ -14,6 +14,7 @@ class AdminBottomNav extends StatelessWidget {
       AppRoutes.adminPackages,
       AppRoutes.adminEvents,
       AppRoutes.adminBookings,
+      AppRoutes.adminGalleries,
     ];
     Get.offAllNamed(routes[index]);
   }
@@ -41,6 +42,7 @@ class AdminBottomNav extends StatelessWidget {
           _item(Icons.inventory_2_outlined, 'Paket', 1),
           _item(Icons.event_outlined, 'Event', 2),
           _item(Icons.receipt_long_outlined, 'Pemesanan', 3),
+          _item(Icons.photo_library_outlined, 'Galeri', 4),
         ],
       ),
     );
@@ -52,19 +54,26 @@ class AdminBottomNav extends StatelessWidget {
       onTap: () => _onTap(index),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: EdgeInsets.symmetric(
+          horizontal: active ? 14 : 12,
+          vertical: 8,
+        ),
         decoration: BoxDecoration(
           color: active ? AppColors.primary : Colors.transparent,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: active ? Colors.white : Colors.grey, size: 22),
+            Icon(icon,
+                color: active ? Colors.white : Colors.grey, size: 20),
             if (active) ...[
-              const SizedBox(width: 6),
+              const SizedBox(width: 5),
               Text(label,
                   style: const TextStyle(
-                      color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold)),
             ],
           ],
         ),

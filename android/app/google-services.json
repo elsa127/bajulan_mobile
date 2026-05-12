@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "142006593595",
+    "project_id": "bajulan-mobile",
+    "storage_bucket": "bajulan-mobile.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:142006593595:android:93127e1dcb94e83a67941e",
+        "android_client_info": {
+          "package_name": "com.example.bajulan_mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB15PnMW3Mlo6eMk7zD5ymVVaqnEq8Sfb8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -101,9 +101,9 @@ class PackageModel {
   String get categoryLabel {
     const map = {
       'kampung_adat': 'Budaya',
+      'pendakian': 'Alam',
       'budaya_seni': 'Ritual',
       'edukasi_durian': 'Kuliner',
-      'pendakian': 'Alam',
       'trabas': 'Petualangan',
     };
     return map[category] ?? category;

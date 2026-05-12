@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -9,15 +10,26 @@ import 'app/data/auth_service.dart';
 import 'app/routes/app_pages.dart';
 import 'app/routes/app_routes.dart';
 import 'app/shared/colors.dart';
+import 'app/services/notification_service.dart';
+import 'modules/notifications/controllers/notification_controller.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
+
+  // Initialize date formatting
   await initializeDateFormatting('id_ID', null);
+
+  // Initialize Firebase
+  await Firebase.initializeApp();
 
   // Register global services
   Get.put(ApiService(), permanent: true);
   Get.put(AuthService(), permanent: true);
+  Get.put(NotificationController(), permanent: true);
+
+  // Initialize notification service (FCM + local notifications)
+  await Get.putAsync(() => NotificationService().init(), permanent: true);
 
   runApp(const BajulanApp());
 }

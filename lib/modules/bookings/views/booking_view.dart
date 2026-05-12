@@ -77,9 +77,18 @@ class BookingView extends StatelessWidget {
       padding: EdgeInsets.fromLTRB(
           20, MediaQuery.of(context).padding.top + 16, 20, 12),
       child: Obx(() {
-        final total = c.bookings.length;
-        final paid = c.bookings.where((b) => b.status == 'paid').length;
+        // Hanya hitung booking yang lunas (paid/confirmed)
+        final paidBookings = c.bookings
+            .where((b) => b.status == 'paid' || b.status == 'confirmed')
+            .toList();
+        final paid = paidBookings.length;
         final pending = c.bookings.where((b) => b.status == 'pending').length;
+        final cancelled =
+            c.bookings.where((b) => b.status == 'cancelled').length;
+        final totalRevenue =
+            paidBookings.fold<int>(0, (sum, b) => sum + b.totalPrice);
+        final fmt = NumberFormat.currency(
+            locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -97,15 +106,45 @@ class BookingView extends StatelessWidget {
               'Kelola semua pemesanan wisata',
               style: TextStyle(color: AppColors.outline, fontSize: 12),
             ),
-            const SizedBox(height: 16),
-            // Stat row
+            const SizedBox(height: 12),
+            // Total pendapatan (hanya lunas)
+            Container(
+              width: double.infinity,
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.green.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.green.withValues(alpha: 0.2)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.payments_outlined,
+                      color: Colors.green, size: 16),
+                  const SizedBox(width: 8),
+                  const Text('Total pendapatan lunas: ',
+                      style:
+                          TextStyle(color: AppColors.outline, fontSize: 12)),
+                  Text(
+                    fmt.format(totalRevenue),
+                    style: const TextStyle(
+                      color: Colors.green,
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            // Stat chips
             Row(
               children: [
-                _statChip('Total', total.toString(), AppColors.primary),
-                const SizedBox(width: 8),
                 _statChip('Lunas', paid.toString(), Colors.green),
                 const SizedBox(width: 8),
                 _statChip('Menunggu', pending.toString(), Colors.orange),
+                const SizedBox(width: 8),
+                _statChip('Batal', cancelled.toString(), Colors.red),
               ],
             ),
           ],

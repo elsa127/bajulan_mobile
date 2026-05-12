@@ -4,12 +4,11 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../app/shared/colors.dart';
 import '../controllers/login_controller.dart';
 
-class LoginView extends StatelessWidget {
+class LoginView extends GetView<LoginController> {
   const LoginView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final c = Get.find<LoginController>();
     return Scaffold(
       backgroundColor: const Color(0xFFF5F0E8),
       body: SafeArea(
@@ -21,7 +20,7 @@ class LoginView extends StatelessWidget {
                 const SizedBox(height: 16),
                 _buildLogo(),
                 const SizedBox(height: 32),
-                _buildCard(c),
+                _buildCard(),
                 const SizedBox(height: 24),
                 _buildFooter(),
                 const SizedBox(height: 16),
@@ -68,7 +67,7 @@ class LoginView extends StatelessWidget {
     );
   }
 
-  Widget _buildCard(LoginController c) {
+  Widget _buildCard() {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -103,7 +102,7 @@ class LoginView extends StatelessWidget {
           // Username
           _label('Username'),
           _inputField(
-            controller: c.usernameCtrl,
+            controller: controller.usernameCtrl,
             hint: 'admin_bajulan',
             icon: Icons.person_outline,
             keyboardType: TextInputType.text,
@@ -112,7 +111,7 @@ class LoginView extends StatelessWidget {
 
           // Password
           _label('Kata Sandi'),
-          Obx(() => _passwordField(c)),
+          Obx(() => _passwordField()),
           const SizedBox(height: 12),
 
           // Remember me + Lupa sandi
@@ -125,8 +124,8 @@ class LoginView extends StatelessWidget {
                         width: 20,
                         height: 20,
                         child: Checkbox(
-                          value: c.rememberMe.value,
-                          onChanged: (_) => c.toggleRemember(),
+                          value: controller.rememberMe.value,
+                          onChanged: (_) => controller.toggleRemember(),
                           activeColor: AppColors.primary,
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(4)),
@@ -172,7 +171,7 @@ class LoginView extends StatelessWidget {
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: c.isLoading.value ? null : c.login,
+                  onPressed: controller.isLoading.value ? null : controller.login,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
@@ -182,7 +181,7 @@ class LoginView extends StatelessWidget {
                         borderRadius: BorderRadius.circular(14)),
                     elevation: 0,
                   ),
-                  child: c.isLoading.value
+                  child: controller.isLoading.value
                       ? const SizedBox(
                           width: 22,
                           height: 22,
@@ -303,15 +302,15 @@ class LoginView extends StatelessWidget {
     );
   }
 
-  Widget _passwordField(LoginController c) {
+  Widget _passwordField() {
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFFF5F2ED),
         borderRadius: BorderRadius.circular(12),
       ),
       child: TextField(
-        controller: c.passwordCtrl,
-        obscureText: c.isObscured.value,
+        controller: controller.passwordCtrl,
+        obscureText: controller.isObscured.value,
         style: const TextStyle(fontSize: 14, color: AppColors.onSurface),
         decoration: InputDecoration(
           hintText: '••••••••',
@@ -320,13 +319,13 @@ class LoginView extends StatelessWidget {
               const Icon(Icons.lock_outline, color: AppColors.muted, size: 20),
           suffixIcon: IconButton(
             icon: Icon(
-              c.isObscured.value
+              controller.isObscured.value
                   ? Icons.visibility_outlined
                   : Icons.visibility_off_outlined,
               color: AppColors.muted,
               size: 20,
             ),
-            onPressed: c.toggleObscure,
+            onPressed: controller.toggleObscure,
           ),
           border: InputBorder.none,
           contentPadding:

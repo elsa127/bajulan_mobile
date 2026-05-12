@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import '../core/constants.dart';
+import '../services/notification_service.dart';
 import 'api_service.dart';
 
 class AuthService extends GetxService {
@@ -47,6 +48,11 @@ class AuthService extends GetxService {
       user.value = userData;
     }
     isLoggedIn.value = true;
+
+    // Simpan FCM token ke backend setelah login
+    if (Get.isRegistered<NotificationService>()) {
+      Get.find<NotificationService>().saveTokenToBackend();
+    }
   }
 
   Future<void> _fetchMe() async {
