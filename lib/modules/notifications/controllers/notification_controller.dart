@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import '../../../app/data/api_service.dart';
 import '../../../app/data/models/notification_model.dart';
 import '../../../app/data/models/booking_model.dart';
@@ -6,16 +7,27 @@ import '../../../app/routes/app_routes.dart';
 
 class NotificationController extends GetxController {
   final _api = Get.find<ApiService>();
+  final _box = GetStorage();
+
+  static const _readKey = 'read_notification_ids';
 
   var notifications = <NotificationModel>[].obs;
   var isLoading = false.obs;
   var error = ''.obs;
+
+  // Set ID notif yang sudah dibaca — persisted ke storage
+  final Set<String> _readIds = {};
 
   int get unreadCount => notifications.where((n) => !n.isRead).length;
 
   @override
   void onInit() {
     super.onInit();
+    // Load read IDs dari storage
+    final saved = _box.read<List>(_readKey);
+    if (saved != null) {
+      _readIds.addAll(saved.map((e) => e.toString()));
+    }
     fetch();
   }
 
@@ -24,22 +36,37 @@ class NotificationController extends GetxController {
     isLoading.value = true;
     error.value = '';
     try {
-      // Ambil booking terbaru (24 jam terakhir)
-      final res = await _api.get('/admin/bookings?recent=true&limit=20');
+      // Ambil booking 7 hari terakhir supaya notif kemarin tidak hilang
+      final res = await _api.get('/admin/bookings?limit=50');
       final raw = res['data'] ?? res['bookings'] ?? [];
       final list = raw is List
           ? raw.cast<Map<String, dynamic>>()
           : <Map<String, dynamic>>[];
 
-      // Convert booking ke notification
-      notifications.value = list.map((bookingJson) {
-        final booking = BookingModel.fromJson(bookingJson);
-        return _bookingToNotification(booking);
-      }).toList();
+      // Filter hanya 7 hari terakhir di sisi Flutter
+      final cutoff = DateTime.now().subtract(const Duration(days: 7));
+
+      final newNotifs = list
+          .map((bookingJson) {
+            final booking = BookingModel.fromJson(bookingJson);
+            return _bookingToNotification(booking);
+          })
+          .where((n) => n.time.isAfter(cutoff))
+          .toList();
+
+      // Pertahankan status baca dari notif yang sudah ada
+      for (final notif in newNotifs) {
+        final existing = notifications.firstWhereOrNull(
+          (n) => n.uniqueId == notif.uniqueId,
+        );
+        if (existing != null && existing.isRead) {
+          notif.isRead = true;
+        }
+      }
+
+      notifications.value = newNotifs;
     } catch (e) {
       error.value = e.toString().replaceFirst('Exception: ', '');
-      // Fallback ke dummy jika error
-      _loadDummy();
     } finally {
       isLoading.value = false;
     }
@@ -49,17 +76,17 @@ class NotificationController extends GetxController {
   NotificationModel _bookingToNotification(BookingModel booking) {
     String title;
     String body;
-    NotifType type = NotifType.booking;
 
-    // Generate title & body berdasarkan status
     switch (booking.status.toLowerCase()) {
       case 'pending':
         title = 'Booking Baru';
-        body = '${booking.guestName} memesan ${booking.package?.name ?? "paket"} untuk ${booking.totalPerson} orang';
+        body =
+            '${booking.guestName} memesan ${booking.package?.name ?? "paket"} untuk ${booking.totalPerson} orang';
         break;
       case 'paid':
         title = 'Pembayaran Diterima';
-        body = '${booking.guestName} telah membayar ${booking.package?.name ?? "paket"}';
+        body =
+            '${booking.guestName} telah membayar ${booking.package?.name ?? "paket"}';
         break;
       case 'confirmed':
         title = 'Booking Dikonfirmasi';
@@ -74,19 +101,28 @@ class NotificationController extends GetxController {
         body = 'Booking ${booking.code} - ${booking.statusLabel}';
     }
 
-    // Booking baru (< 24 jam) = unread
-    final isNew = booking.createdAt != null &&
-        DateTime.now().difference(DateTime.parse(booking.createdAt!)).inHours < 24;
+    final uniqueId = booking.id?.toString() ?? booking.code;
+
+    // Cek apakah sudah pernah dibaca (dari storage)
+    final alreadyRead = _readIds.contains(uniqueId);
+
+    // Kalau belum pernah dibaca, cek apakah booking baru (< 24 jam)
+    final isNew = !alreadyRead &&
+        booking.createdAt != null &&
+        DateTime.now()
+                .difference(DateTime.parse(booking.createdAt!))
+                .inHours <
+            24;
 
     return NotificationModel(
       id: booking.id,
-      type: type,
+      type: NotifType.booking,
       title: title,
       body: body,
       time: booking.createdAt != null
           ? DateTime.parse(booking.createdAt!)
           : DateTime.now(),
-      isRead: !isNew, // Booking baru = unread
+      isRead: alreadyRead || !isNew,
       data: {
         'booking_id': booking.id,
         'booking_code': booking.code,
@@ -95,28 +131,36 @@ class NotificationController extends GetxController {
     );
   }
 
-  // ── Mark as read (local only) ─────────────────────────
+  // ── Mark as read ───────────────────────────────────────
   Future<void> markAsRead(String id) async {
     final idx = notifications.indexWhere((n) => n.uniqueId == id);
     if (idx == -1) return;
 
     notifications[idx].isRead = true;
     notifications.refresh();
+
+    // Simpan ke storage agar persisten
+    _readIds.add(id);
+    _saveReadIds();
   }
 
-  // ── Mark all as read (local only) ─────────────────────
+  // ── Mark all as read ───────────────────────────────────
   Future<void> markAllRead() async {
     for (final n in notifications) {
       n.isRead = true;
+      _readIds.add(n.uniqueId);
     }
     notifications.refresh();
+    _saveReadIds();
   }
 
-  // ── Handle notification tap ───────────────────────────
+  void _saveReadIds() {
+    _box.write(_readKey, _readIds.toList());
+  }
+
+  // ── Handle notification tap ────────────────────────────
   void handleTap(NotificationModel notif) {
     markAsRead(notif.uniqueId);
-
-    // Navigate ke booking detail
     if (notif.bookingId != null) {
       Get.toNamed(
         AppRoutes.adminBookingDetail,
@@ -127,41 +171,7 @@ class NotificationController extends GetxController {
     }
   }
 
-  // ── Dummy data untuk fallback ─────────────────────────
-  void _loadDummy() {
-    final now = DateTime.now();
-    notifications.value = [
-      NotificationModel(
-        notifId: '1',
-        type: NotifType.booking,
-        title: 'Booking Baru',
-        body: "Aditya Pratama memesan 'Paket Budaya' untuk 5 orang",
-        time: now.subtract(const Duration(minutes: 5)),
-        isRead: false,
-        data: {'booking_id': 1},
-      ),
-      NotificationModel(
-        notifId: '2',
-        type: NotifType.booking,
-        title: 'Pembayaran Diterima',
-        body: 'Budi Santoso telah membayar Paket Alam',
-        time: now.subtract(const Duration(minutes: 15)),
-        isRead: false,
-        data: {'booking_id': 2},
-      ),
-      NotificationModel(
-        notifId: '3',
-        type: NotifType.booking,
-        title: 'Booking Dikonfirmasi',
-        body: 'Booking BK-003 telah dikonfirmasi',
-        time: now.subtract(const Duration(hours: 26)),
-        isRead: true,
-        data: {'booking_id': 3},
-      ),
-    ];
-  }
-
-  // ── Kelompokkan berdasarkan hari ──────────────────────
+  // ── Kelompokkan berdasarkan hari ───────────────────────
   Map<String, List<NotificationModel>> get grouped {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);

@@ -29,20 +29,6 @@ class NotificationService extends GetxService {
     return this;
   }
 
-  // ── Kirim token ke backend ─────────────────────────────
-  Future<void> saveTokenToBackend() async {
-    if (fcmToken == null) return;
-    try {
-      final api = Get.find<ApiService>();
-      await api.post('/admin/fcm-token', {'token': fcmToken!});
-      // ignore: avoid_print
-      print('✅ FCM token saved to backend');
-    } catch (e) {
-      // ignore: avoid_print
-      print('⚠️ Could not save FCM token: $e');
-    }
-  }
-
   // ── Permission ─────────────────────────────────────────
   Future<void> _requestPermission() async {
     await _fcm.requestPermission(
