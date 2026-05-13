@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import '../../../app/shared/colors.dart';
 import '../../../app/shared/widgets/bottom_nav.dart';
 import '../../../app/shared/widgets/network_image_widget.dart';
@@ -17,40 +18,51 @@ class AdminPackagesView extends StatelessWidget {
     final c = Get.find<AdminPackagesController>();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFDFBF7),
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      backgroundColor: AppColors.background,
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
             // ── Header ──────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
+            Container(
+              color: AppColors.background,
+              padding: EdgeInsets.fromLTRB(
+                  20, MediaQuery.of(context).padding.top + 16, 20, 16),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Manage Packages',
-                    style: TextStyle(
-                      color: Color(0xFF2D3A30),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 24,
-                    ),
-                  ),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 10,
-                        )
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Paket Wisata',
+                          style: TextStyle(
+                              color: AppColors.primary,
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          'Kelola paket wisata Kampung Adat Bajulan',
+                          style: TextStyle(
+                              color: AppColors.outline, fontSize: 12),
+                        ),
                       ],
                     ),
-                    child: IconButton(
-                      onPressed: () {},
-                      icon: const Icon(Icons.notifications_none,
-                          color: Color(0xFF2D3A30)),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: () => Get.toNamed(AppRoutes.adminAddPackage),
+                    icon: const Icon(Icons.add, size: 16),
+                    label: const Text('Tambah\nPaket',
+                        style: TextStyle(fontSize: 11, height: 1.2)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 10),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
+                      elevation: 0,
                     ),
                   ),
                 ],
@@ -59,28 +71,23 @@ class AdminPackagesView extends StatelessWidget {
 
             // ── Search ──────────────────────────────────
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
+              padding: const EdgeInsets.symmetric(horizontal: AppColors.spaceXl),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF1EDE8),
-                  borderRadius: BorderRadius.circular(16),
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: AppColors.spaceL),
+                decoration: AppColors.inputDecoration,
                 child: TextField(
                   onChanged: (v) => c.searchQuery.value = v,
                   decoration: const InputDecoration(
-                    hintText: 'Search packages...',
-                    hintStyle:
-                        TextStyle(color: Color(0xFF9CA3AF), fontSize: 14),
-                    icon: Icon(Icons.search,
-                        color: Color(0xFF9CA3AF), size: 20),
+                    hintText: 'Cari paket...',
+                    hintStyle: TextStyle(color: AppColors.muted, fontSize: 14),
+                    icon: Icon(Icons.search, color: AppColors.muted, size: 20),
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.symmetric(vertical: 14),
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppColors.spaceL),
 
             // ── Filter chips ─────────────────────────────
             Obx(() => SingleChildScrollView(
@@ -141,16 +148,8 @@ class AdminPackagesView extends StatelessWidget {
               }),
             ),
           ],
-        ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Get.toNamed(AppRoutes.adminAddPackage),
-        backgroundColor: const Color(0xFF2D3A30),
-        elevation: 4,
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: const Icon(Icons.add, color: Colors.white, size: 28),
-      ),
+      floatingActionButton: null,
       bottomNavigationBar: const AdminBottomNav(currentIndex: 1),
     );
   }
@@ -160,18 +159,15 @@ class AdminPackagesView extends StatelessWidget {
     return GestureDetector(
       onTap: () => c.selectedFilter.value = key,
       child: Container(
-        padding:
-            const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: active
-              ? const Color(0xFF2D3A30)
-              : const Color(0xFFEEEAE5),
-          borderRadius: BorderRadius.circular(20),
+          color: active ? AppColors.primary : AppColors.surfaceVariant,
+          borderRadius: BorderRadius.circular(AppColors.radiusXl),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: active ? Colors.white : const Color(0xFF6B7280),
+            color: active ? Colors.white : AppColors.outline,
             fontSize: 13,
             fontWeight: FontWeight.w600,
           ),
@@ -240,21 +236,10 @@ class _PackageCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isInactive = package.status == 'inactive';
-    final priceK =
-        'IDR ${(package.pricePerPerson / 1000).toStringAsFixed(0)}k';
+    final fmt = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
 
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
+      decoration: AppColors.cardDecoration(radius: AppColors.radiusL),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -263,8 +248,8 @@ class _PackageCard extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  topRight: Radius.circular(16),
+                  topLeft: Radius.circular(AppColors.radiusL),
+                  topRight: Radius.circular(AppColors.radiusL),
                 ),
                 child: AppNetworkImage(
                   url: package.coverImage,
@@ -277,17 +262,18 @@ class _PackageCard extends StatelessWidget {
                 top: 12,
                 right: 12,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: AppColors.secondary,
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(AppColors.radiusXl),
                   ),
-                  child: Text(priceK,
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold)),
+                  child: Text(
+                    fmt.format(package.pricePerPerson),
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
               // Inactive overlay
@@ -297,13 +283,13 @@ class _PackageCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: Colors.black.withValues(alpha: 0.5),
                       borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(16),
-                        topRight: Radius.circular(16),
+                        topLeft: Radius.circular(AppColors.radiusL),
+                        topRight: Radius.circular(AppColors.radiusL),
                       ),
                     ),
                     child: const Center(
                       child: Text(
-                        'UNPUBLISHED',
+                        'NONAKTIF',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 16,
@@ -319,38 +305,33 @@ class _PackageCard extends StatelessWidget {
 
           // ── Info ───────────────────────────────────────
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppColors.spaceL),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   package.name,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF2D3A30),
-                  ),
+                  style: AppColors.titleSmall,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: AppColors.spaceXs),
                 Text(
                   package.description,
-                  style: const TextStyle(
-                      fontSize: 13, color: Color(0xFF9CA3AF)),
+                  style: AppColors.bodySmall,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppColors.spaceM),
                 Row(
                   children: [
                     _infoItem(Icons.group_outlined,
                         'Min. ${package.minPerson} orang'),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: AppColors.spaceL),
                     _infoItem(Icons.sell_outlined, package.categoryLabel),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppColors.spaceL),
 
                 // ── Buttons ────────────────────────────────
                 Row(
@@ -359,9 +340,7 @@ class _PackageCard extends StatelessWidget {
                       child: ElevatedButton.icon(
                         onPressed: isInactive ? onPublish : onEdit,
                         icon: Icon(
-                          isInactive
-                              ? Icons.publish
-                              : Icons.edit_outlined,
+                          isInactive ? Icons.publish : Icons.edit_outlined,
                           size: 18,
                           color: Colors.white,
                         ),
@@ -369,44 +348,44 @@ class _PackageCard extends StatelessWidget {
                           isInactive ? 'Publish' : 'Edit',
                           style: const TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 15,
+                              fontSize: 14,
                               color: Colors.white),
                         ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           elevation: 0,
-                          padding:
-                              const EdgeInsets.symmetric(vertical: 14),
+                          padding: const EdgeInsets.symmetric(vertical: 13),
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
+                              borderRadius:
+                                  BorderRadius.circular(AppColors.radiusM)),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: AppColors.spaceM),
                     if (isInactive) ...[
                       Container(
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF3F4F6),
-                          borderRadius: BorderRadius.circular(10),
+                          color: AppColors.surfaceVariant,
+                          borderRadius: BorderRadius.circular(AppColors.radiusS),
                         ),
                         child: IconButton(
                           onPressed: onEdit,
                           icon: const Icon(Icons.edit_outlined,
-                              color: Color(0xFF2D3A30)),
+                              color: AppColors.primary),
                           constraints: const BoxConstraints(),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: AppColors.spaceS),
                     ],
                     Container(
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFEE2E2),
-                        borderRadius: BorderRadius.circular(10),
+                        color: AppColors.error.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(AppColors.radiusS),
                       ),
                       child: IconButton(
                         onPressed: onDelete,
                         icon: const Icon(Icons.delete_outline,
-                            color: Color(0xFFB91C1C)),
+                            color: AppColors.error),
                         constraints: const BoxConstraints(),
                       ),
                     ),
@@ -482,8 +461,8 @@ class _EditPackageSheet extends StatelessWidget {
                   width: double.infinity,
                   height: 140,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF0EDE9),
-                    borderRadius: BorderRadius.circular(12),
+                    color: AppColors.surfaceVariant,
+                    borderRadius: BorderRadius.circular(AppColors.radiusM),
                     border: Border.all(
                         color: AppColors.primary.withValues(alpha: 0.3)),
                   ),
@@ -537,9 +516,9 @@ class _EditPackageSheet extends StatelessWidget {
                   value: c.selectedCategory.value,
                   decoration: InputDecoration(
                     filled: true,
-                    fillColor: const Color(0xFFF0EDE9),
+                    fillColor: AppColors.surfaceVariant,
                     border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppColors.radiusM),
                         borderSide: BorderSide.none),
                     contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 14),
@@ -580,9 +559,9 @@ class _EditPackageSheet extends StatelessWidget {
                   value: c.selectedStatus.value,
                   decoration: InputDecoration(
                     filled: true,
-                    fillColor: const Color(0xFFF0EDE9),
+                    fillColor: AppColors.surfaceVariant,
                     border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppColors.radiusM),
                         borderSide: BorderSide.none),
                     contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 14),
@@ -638,28 +617,21 @@ class _EditPackageSheet extends StatelessWidget {
   }
 
   Widget _label(String text) => Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: Text(text,
-            style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: AppColors.onSurface)),
+        padding: const EdgeInsets.only(bottom: AppColors.spaceS),
+        child: Text(text, style: AppColors.labelBold),
       );
 
   Widget _field(TextEditingController ctrl, String hint,
       {TextInputType type = TextInputType.text, int maxLines = 1}) {
     return Container(
-      decoration: BoxDecoration(
-          color: const Color(0xFFF0EDE9),
-          borderRadius: BorderRadius.circular(12)),
+      decoration: AppColors.inputDecoration,
       child: TextField(
         controller: ctrl,
         keyboardType: type,
         maxLines: maxLines,
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle:
-              const TextStyle(color: AppColors.muted, fontSize: 13),
+          hintStyle: const TextStyle(color: AppColors.muted, fontSize: 13),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.all(14),
         ),

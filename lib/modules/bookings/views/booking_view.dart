@@ -17,7 +17,7 @@ class BookingView extends StatelessWidget {
     final fmt = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F0E8),
+      backgroundColor: AppColors.background,
       body: Column(
         children: [
           _buildHeader(context, c),
@@ -73,7 +73,7 @@ class BookingView extends StatelessWidget {
   // ── Header ─────────────────────────────────────────────
   Widget _buildHeader(BuildContext context, BookingController c) {
     return Container(
-      color: const Color(0xFFF5F0E8),
+      color: AppColors.background,
       padding: EdgeInsets.fromLTRB(
           20, MediaQuery.of(context).padding.top + 16, 20, 12),
       child: Obx(() {

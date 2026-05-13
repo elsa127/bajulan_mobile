@@ -18,7 +18,7 @@ class DashboardView extends StatelessWidget {
     final auth = Get.find<AuthService>();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F0E8),
+      backgroundColor: AppColors.background,
       appBar: _buildAppBar(auth),
       body: Obx(() {
         if (c.isLoading.value) {
@@ -102,7 +102,7 @@ class DashboardView extends StatelessWidget {
   // ── AppBar ─────────────────────────────────────────────
   PreferredSizeWidget _buildAppBar(AuthService auth) {
     return AppBar(
-      backgroundColor: const Color(0xFFF5F0E8),
+      backgroundColor: AppColors.background,
       elevation: 0,
       surfaceTintColor: Colors.transparent,
       title: Row(

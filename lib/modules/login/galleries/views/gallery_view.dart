@@ -15,7 +15,7 @@ class GalleryView extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = Get.find<GalleryController>();
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F0E8),
+      backgroundColor: AppColors.background,
       body: Column(
         children: [
           _buildHeader(context, c),
@@ -75,7 +75,7 @@ class GalleryView extends StatelessWidget {
 
   Widget _buildHeader(BuildContext context, GalleryController c) {
     return Container(
-      color: const Color(0xFFF5F0E8),
+      color: AppColors.background,
       padding: EdgeInsets.fromLTRB(
           20, MediaQuery.of(context).padding.top + 16, 20, 12),
       child: Row(

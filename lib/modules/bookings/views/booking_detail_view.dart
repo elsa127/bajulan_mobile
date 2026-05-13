@@ -18,7 +18,7 @@ class BookingDetailView extends StatelessWidget {
         locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F0E8),
+      backgroundColor: AppColors.background,
       body: Obx(() {
         // ── Loading ──────────────────────────────────
         if (c.isLoading.value) {
@@ -32,7 +32,7 @@ class BookingDetailView extends StatelessWidget {
         // ── Error ────────────────────────────────────
         if (c.error.isNotEmpty) {
           return Scaffold(
-            backgroundColor: const Color(0xFFF5F0E8),
+            backgroundColor: AppColors.background,
             appBar: _buildAppBar(null),
             body: ErrorState(
               message: c.error.value,
@@ -47,13 +47,13 @@ class BookingDetailView extends StatelessWidget {
         final b = c.booking.value!;
 
         return Scaffold(
-          backgroundColor: const Color(0xFFF5F0E8),
+          backgroundColor: AppColors.background,
           body: CustomScrollView(
             slivers: [
               // ── AppBar ────────────────────────────
               SliverAppBar(
                 pinned: true,
-                backgroundColor: const Color(0xFFF5F0E8),
+                backgroundColor: AppColors.background,
                 surfaceTintColor: Colors.transparent,
                 elevation: 0,
                 leading: IconButton(
@@ -128,7 +128,7 @@ class BookingDetailView extends StatelessWidget {
 
   PreferredSizeWidget _buildAppBar(BookingModel? b) {
     return AppBar(
-      backgroundColor: const Color(0xFFF5F0E8),
+      backgroundColor: AppColors.background,
       elevation: 0,
       surfaceTintColor: Colors.transparent,
       leading: IconButton(

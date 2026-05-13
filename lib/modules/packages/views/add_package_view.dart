@@ -12,9 +12,9 @@ class AddPackageView extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = Get.find<PackageController>();
     return Scaffold(
-      backgroundColor: const Color(0xFFFDFBF7),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFFDFBF7),
+        backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.primary),

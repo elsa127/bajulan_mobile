@@ -15,7 +15,7 @@ class EventView extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = Get.find<EventController>();
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F0E8),
+      backgroundColor: AppColors.background,
       body: Column(
         children: [
           _buildHeader(context, c),
@@ -73,7 +73,7 @@ class EventView extends StatelessWidget {
 
   Widget _buildHeader(BuildContext context, EventController c) {
     return Container(
-      color: const Color(0xFFF5F0E8),
+      color: AppColors.background,
       padding: EdgeInsets.fromLTRB(
           20, MediaQuery.of(context).padding.top + 16, 20, 16),
       child: Row(

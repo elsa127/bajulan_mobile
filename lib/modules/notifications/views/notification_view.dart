@@ -11,9 +11,9 @@ class NotificationView extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = Get.find<NotificationController>();
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F0E8),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF5F0E8),
+        backgroundColor: AppColors.background,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
