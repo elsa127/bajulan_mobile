@@ -344,10 +344,10 @@ class _PackageCard extends StatelessWidget {
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    _infoItem(Icons.access_time_filled, '1 Hari'),
+                    _infoItem(Icons.group_outlined,
+                        'Min. ${package.minPerson} orang'),
                     const SizedBox(width: 16),
-                    _infoItem(Icons.group_rounded,
-                        'Min ${package.minPerson}'),
+                    _infoItem(Icons.sell_outlined, package.categoryLabel),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -423,13 +423,13 @@ class _PackageCard extends StatelessWidget {
   Widget _infoItem(IconData icon, String label) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: const Color(0xFF2D3A30)),
-        const SizedBox(width: 6),
+        Icon(icon, size: 14, color: AppColors.outline),
+        const SizedBox(width: 5),
         Text(label,
             style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
-                color: Color(0xFF2D3A30))),
+                color: AppColors.outline)),
       ],
     );
   }

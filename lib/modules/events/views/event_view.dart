@@ -267,7 +267,30 @@ class _EventCard extends StatelessWidget {
                     Text(_formatDate(event.eventDate),
                         style: const TextStyle(
                             color: AppColors.outline, fontSize: 12)),
-                    const SizedBox(width: 12),
+                    if (event.startTime != null && event.startTime!.isNotEmpty) ...[
+                      const SizedBox(width: 8),
+                      const Icon(Icons.access_time,
+                          size: 13, color: AppColors.outline),
+                      const SizedBox(width: 4),
+                      Text(
+                        event.startTime!.length >= 5
+                            ? event.startTime!.substring(0, 5)
+                            : event.startTime!,
+                        style: const TextStyle(
+                            color: AppColors.outline, fontSize: 12),
+                      ),
+                      if (event.endTime != null && event.endTime!.isNotEmpty)
+                        Text(
+                          ' – ${event.endTime!.length >= 5 ? event.endTime!.substring(0, 5) : event.endTime!}',
+                          style: const TextStyle(
+                              color: AppColors.outline, fontSize: 12),
+                        ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
                     const Icon(Icons.location_on_outlined,
                         size: 13, color: AppColors.outline),
                     const SizedBox(width: 4),
@@ -503,6 +526,78 @@ class _EventFormSheet extends StatelessWidget {
                 )),
             const SizedBox(height: 14),
 
+            // ── Jam Mulai & Selesai ────────────────────────
+            Row(children: [
+              Expanded(child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _label('Jam Mulai'),
+                  GestureDetector(
+                    onTap: () => c.pickTime(context, isStart: true),
+                    child: Obx(() => Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF5F2ED),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(children: [
+                        const Icon(Icons.access_time,
+                            color: AppColors.primary, size: 16),
+                        const SizedBox(width: 8),
+                        Text(
+                          c.selectedStartTime.value != null
+                              ? c.startTimeCtrl.text
+                              : 'Pilih jam',
+                          style: TextStyle(
+                            color: c.selectedStartTime.value != null
+                                ? AppColors.onSurface
+                                : AppColors.muted,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ]),
+                    )),
+                  ),
+                ],
+              )),
+              const SizedBox(width: 12),
+              Expanded(child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _label('Jam Selesai'),
+                  GestureDetector(
+                    onTap: () => c.pickTime(context, isStart: false),
+                    child: Obx(() => Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF5F2ED),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(children: [
+                        const Icon(Icons.access_time_filled,
+                            color: AppColors.primary, size: 16),
+                        const SizedBox(width: 8),
+                        Text(
+                          c.selectedEndTime.value != null
+                              ? c.endTimeCtrl.text
+                              : 'Pilih jam',
+                          style: TextStyle(
+                            color: c.selectedEndTime.value != null
+                                ? AppColors.onSurface
+                                : AppColors.muted,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ]),
+                    )),
+                  ),
+                ],
+              )),
+            ]),
+            const SizedBox(height: 14),
+
             _label('Status'),
             Obx(() => Container(
                   decoration: BoxDecoration(
@@ -528,6 +623,58 @@ class _EventFormSheet extends StatelessWidget {
                     onChanged: (v) => c.selectedStatus.value = v!,
                   ),
                 )),
+            const SizedBox(height: 14),
+
+            // ── Pilih Paket (opsional) ─────────────────────
+            _label('Paket Wisata (opsional)'),
+            Obx(() {
+              if (c.isLoadingPackages.value) {
+                return Container(
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5F2ED),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Center(
+                    child: SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  ),
+                );
+              }
+              return Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF5F2ED),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: DropdownButton<int?>(
+                  value: c.selectedPackageId.value,
+                  isExpanded: true,
+                  underline: const SizedBox.shrink(),
+                  borderRadius: BorderRadius.circular(12),
+                  hint: const Text('Tidak terhubung ke paket',
+                      style: TextStyle(color: AppColors.muted, fontSize: 13)),
+                  items: [
+                    const DropdownMenuItem<int?>(
+                      value: null,
+                      child: Text('Tidak terhubung ke paket',
+                          style: TextStyle(color: AppColors.muted)),
+                    ),
+                    ...c.packages.map((pkg) => DropdownMenuItem<int?>(
+                          value: pkg.id,
+                          child: Text(
+                            pkg.name,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        )),
+                  ],
+                  onChanged: (v) => c.selectedPackageId.value = v,
+                ),
+              );
+            }),
             const SizedBox(height: 24),
 
             Obx(() => SizedBox(
