@@ -15,23 +15,24 @@ import 'modules/notifications/controllers/notification_controller.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await GetStorage.init();
 
-  // Initialize date formatting
+  // Init storage dan locale — cepat, tetap sync
+  await GetStorage.init();
   await initializeDateFormatting('id_ID', null);
 
-  // Initialize Firebase
+  // Init Firebase core — diperlukan sebelum runApp
   await Firebase.initializeApp();
 
-  // Register global services
+  // Register services yang dibutuhkan sebelum UI
   Get.put(ApiService(), permanent: true);
   Get.put(AuthService(), permanent: true);
   Get.put(NotificationController(), permanent: true);
 
-  // Initialize notification service (FCM + local notifications)
-  await Get.putAsync(() => NotificationService().init(), permanent: true);
-
+  // Jalankan app dulu — jangan tunggu notification service
   runApp(const BajulanApp());
+
+  // Init notification service di background setelah UI sudah tampil
+  Get.putAsync(() => NotificationService().init(), permanent: true);
 }
 
 class BajulanApp extends StatelessWidget {
@@ -57,9 +58,7 @@ class BajulanApp extends StatelessWidget {
           surfaceTintColor: Colors.transparent,
         ),
       ),
-      initialRoute: Get.find<AuthService>().isLoggedIn.value
-          ? AppRoutes.adminDashboard
-          : AppRoutes.login,
+      initialRoute: AppRoutes.splash,
       getPages: AppPages.pages,
       defaultTransition: Transition.fadeIn,
     );

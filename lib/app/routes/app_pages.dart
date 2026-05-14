@@ -36,9 +36,16 @@ import '../../modules/login/galleries/controllers/gallery_controller.dart';
 import '../../modules/notifications/views/notification_view.dart';
 import '../../modules/notifications/controllers/notification_controller.dart';
 
+import '../../modules/splash/splash_view.dart';
+
 class AppPages {
   static final pages = [
-    // ── PUBLIC ──────────────────────────────────────────
+    // ── SPLASH ──────────────────────────────────────────
+    GetPage(
+      name: AppRoutes.splash,
+      page: () => const SplashView(),
+      transition: Transition.fadeIn,
+    ),
     GetPage(
       name: AppRoutes.home,
       page: () => const HomeView(),

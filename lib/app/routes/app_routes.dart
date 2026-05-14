@@ -1,4 +1,7 @@
 abstract class AppRoutes {
+  // Splash
+  static const splash = '/splash';
+
   // Public
   static const home = '/';
   static const packageDetail = '/package/:id';
