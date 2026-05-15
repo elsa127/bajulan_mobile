@@ -248,14 +248,18 @@ class GalleryController extends GetxController {
           files: [imageFile],
         );
       } else {
-        // Jika tidak ada gambar baru, gunakan PUT biasa
-        await _api.put('/admin/galleries/$id', {
-          'title': titleCtrl.text.trim(),
-          if (captionCtrl.text.trim().isNotEmpty)
-            'caption': captionCtrl.text.trim(),
-          'category': selectedCategory.value,
-          'is_featured': isFeatured.value ? 1 : 0,
-        });
+        // Tidak ada gambar baru — pakai POST multipart dengan _method spoofing
+        await _api.postMultipart(
+          '/admin/galleries/$id',
+          fields: {
+            '_method': 'PUT',
+            'title': titleCtrl.text.trim(),
+            if (captionCtrl.text.trim().isNotEmpty)
+              'caption': captionCtrl.text.trim(),
+            'category': selectedCategory.value,
+            'is_featured': isFeatured.value ? '1' : '0',
+          },
+        );
       }
 
       Get.back();

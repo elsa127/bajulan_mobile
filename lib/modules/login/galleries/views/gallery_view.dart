@@ -222,38 +222,16 @@ class _GalleryItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => _openFullscreen(context),
-      onLongPress: () => _showOptionsMenu(context),
       child: Stack(
         fit: StackFit.expand,
         children: [
+          // ── Gambar ──────────────────────────────────
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: AppNetworkImage(url: gallery.imageUrl, fit: BoxFit.cover),
           ),
-          if (gallery.isFeatured)
-            Positioned(
-              top: 4,
-              left: 4,
-              child: Container(
-                padding: const EdgeInsets.all(3),
-                decoration: const BoxDecoration(
-                    color: Colors.amber, shape: BoxShape.circle),
-                child: const Icon(Icons.star, color: Colors.white, size: 10),
-              ),
-            ),
-          Positioned(
-            top: 4,
-            right: 4,
-            child: GestureDetector(
-              onTap: () => _confirmDelete(context),
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(
-                    color: Colors.black54, shape: BoxShape.circle),
-                child: const Icon(Icons.close, color: Colors.white, size: 12),
-              ),
-            ),
-          ),
+
+          // ── Gradient bawah ───────────────────────────
           Positioned(
             bottom: 0,
             left: 0,
@@ -264,7 +242,13 @@ class _GalleryItem extends StatelessWidget {
               child: Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                color: Colors.black45,
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: [Colors.black54, Colors.transparent],
+                  ),
+                ),
                 child: Text(
                   gallery.title.isNotEmpty
                       ? gallery.title
@@ -273,6 +257,38 @@ class _GalleryItem extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
+              ),
+            ),
+          ),
+
+          // ── Badge featured ───────────────────────────
+          if (gallery.isFeatured)
+            Positioned(
+              top: 4,
+              left: 4,
+              child: Container(
+                padding: const EdgeInsets.all(3),
+                decoration: const BoxDecoration(
+                    color: Colors.amber, shape: BoxShape.circle),
+                child:
+                    const Icon(Icons.star, color: Colors.white, size: 10),
+              ),
+            ),
+
+          // ── Tombol titik tiga ────────────────────────
+          Positioned(
+            top: 4,
+            right: 4,
+            child: GestureDetector(
+              onTap: () => _showOptionsMenu(context),
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.55),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.more_vert,
+                    color: Colors.white, size: 16),
               ),
             ),
           ),
@@ -296,18 +312,47 @@ class _GalleryItem extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
-        padding: const EdgeInsets.symmetric(vertical: 20),
+        padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                  color: AppColors.muted,
+                  borderRadius: BorderRadius.circular(2)),
+            ),
+            const SizedBox(height: 8),
+            // Judul foto
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                gallery.title.isNotEmpty ? gallery.title : gallery.categoryLabel,
+                style: const TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const Divider(),
             ListTile(
-              leading: const Icon(Icons.edit_outlined, color: AppColors.primary),
-              title: const Text('Edit Foto'),
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.edit_outlined, color: AppColors.primary),
+              ),
+              title: const Text('Edit Foto',
+                  style: TextStyle(fontWeight: FontWeight.w600)),
               subtitle: const Text('Ubah judul, kategori, atau gambar'),
               onTap: () {
                 Get.back();
                 c.populateForm(gallery);
-                // Show edit sheet
                 showModalBottomSheet(
                   context: context,
                   isScrollControlled: true,
@@ -317,29 +362,17 @@ class _GalleryItem extends StatelessWidget {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.info_outline, color: AppColors.secondary),
-              title: const Text('Debug Info'),
-              subtitle: Text(
-                'URL: ${gallery.imageUrl}',
-                style: const TextStyle(fontSize: 11),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.error.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.delete_outline, color: AppColors.error),
               ),
-              onTap: () {
-                Get.back();
-                Get.snackbar(
-                  'Image URL',
-                  gallery.imageUrl,
-                  snackPosition: SnackPosition.BOTTOM,
-                  duration: const Duration(seconds: 5),
-                  backgroundColor: Colors.black87,
-                  colorText: Colors.white,
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.delete_outline, color: AppColors.error),
-              title: const Text('Hapus Foto'),
+              title: const Text('Hapus Foto',
+                  style: TextStyle(
+                      fontWeight: FontWeight.w600, color: AppColors.error)),
               onTap: () {
                 Get.back();
                 _confirmDelete(context);
@@ -353,6 +386,8 @@ class _GalleryItem extends StatelessWidget {
 
   void _confirmDelete(BuildContext context) {
     Get.dialog(AlertDialog(
+      shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       title: const Text('Hapus Foto?'),
       content: Text(
           '"${gallery.title.isNotEmpty ? gallery.title : 'Foto ini'}" akan dihapus permanen.'),

@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -16,22 +17,32 @@ import 'modules/notifications/controllers/notification_controller.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Init storage dan locale — cepat, tetap sync
-  await GetStorage.init();
-  await initializeDateFormatting('id_ID', null);
+  // Jalankan init yang bisa diparalelkan
+  await Future.wait([
+    GetStorage.init(),
+    initializeDateFormatting('id_ID', null),
+    Firebase.initializeApp(),
+    // Pre-cache font agar tidak download saat render pertama
+    GoogleFonts.pendingFonts([
+      GoogleFonts.plusJakartaSans(),
+    ]),
+  ]);
 
-  // Init Firebase core — diperlukan sebelum runApp
-  await Firebase.initializeApp();
-
-  // Register services yang dibutuhkan sebelum UI
+  // Register services
   Get.put(ApiService(), permanent: true);
   Get.put(AuthService(), permanent: true);
   Get.put(NotificationController(), permanent: true);
 
-  // Jalankan app dulu — jangan tunggu notification service
+  // Sembunyikan status bar untuk splash yang lebih clean
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.dark,
+  ));
+
+  // Jalankan app
   runApp(const BajulanApp());
 
-  // Init notification service di background setelah UI sudah tampil
+  // Init notification service di background
   Get.putAsync(() => NotificationService().init(), permanent: true);
 }
 
@@ -53,7 +64,7 @@ class BajulanApp extends StatelessWidget {
           Theme.of(context).textTheme,
         ),
         appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFFFDFBF7),
+          backgroundColor: AppColors.background,
           elevation: 0,
           surfaceTintColor: Colors.transparent,
         ),
