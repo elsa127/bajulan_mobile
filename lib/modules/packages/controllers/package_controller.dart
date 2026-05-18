@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import '../../../app/data/api_service.dart';
+import '../../../app/routes/app_routes.dart';
+import 'admin_packages_controller.dart';
 
 class PackageController extends GetxController {
   final _api = Get.find<ApiService>();
@@ -80,10 +82,12 @@ class PackageController extends GetxController {
           backgroundColor: Colors.green,
           colorText: Colors.white);
 
-      Future.delayed(const Duration(seconds: 1), () {
-        clearForm();
-        Get.back();
-      });
+      clearForm();
+      // Kembali ke halaman paket dan refresh list
+      if (Get.isRegistered<AdminPackagesController>()) {
+        Get.find<AdminPackagesController>().fetch();
+      }
+      Get.offNamed(AppRoutes.adminPackages);
     } catch (e) {
       Get.snackbar('Gagal', e.toString().replaceFirst('Exception: ', ''),
           snackPosition: SnackPosition.BOTTOM,

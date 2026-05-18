@@ -44,8 +44,19 @@ class EventController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    // Trigger auto-update status event dari backend
+    _updateEventStatus();
     fetch();
     fetchPackages();
+  }
+
+  // ── Auto update status event dari backend ─────────────
+  Future<void> _updateEventStatus() async {
+    try {
+      await _api.get('/admin/artisan/update-event-status');
+    } catch (_) {
+      // Silent fail — tidak perlu tampilkan error ke user
+    }
   }
 
   Future<void> fetch() async {

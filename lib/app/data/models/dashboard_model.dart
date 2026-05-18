@@ -3,12 +3,14 @@ class DashboardModel {
   final int totalPendapatanBulanIni;
   final int jumlahPaketAktif;
   final List<Map<String, dynamic>> bookingTerbaru;
+  final List<Map<String, dynamic>> eventBerlangsung;
 
   DashboardModel({
     required this.totalBookingHariIni,
     required this.totalPendapatanBulanIni,
     required this.jumlahPaketAktif,
     required this.bookingTerbaru,
+    this.eventBerlangsung = const [],
   });
 
   factory DashboardModel.fromJson(Map<String, dynamic> json) {
@@ -20,6 +22,10 @@ class DashboardModel {
           _parseInt(data['total_pendapatan_bulan_ini']) ?? 0,
       jumlahPaketAktif: _parseInt(data['jumlah_paket_aktif']) ?? 0,
       bookingTerbaru: (data['booking_terbaru'] as List<dynamic>?)
+              ?.map((e) => e as Map<String, dynamic>)
+              .toList() ??
+          [],
+      eventBerlangsung: (data['event_berlangsung'] as List<dynamic>?)
               ?.map((e) => e as Map<String, dynamic>)
               .toList() ??
           [],

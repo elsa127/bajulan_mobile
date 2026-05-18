@@ -336,88 +336,165 @@ class DashboardView extends StatelessWidget {
   // ── Events Section ─────────────────────────────────────
   Widget _buildEventsSection(DashboardController c) {
     final d = c.dashboard.value;
-    return Container(
-      height: 180,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        color: AppColors.primary,
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Gradient overlay
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0xFF3D5A47), Color(0xFF1A2E22)],
-              ),
+    return Obx(() {
+      final events = c.ongoingEvents;
+
+      // Tidak ada event → tampilkan placeholder
+      if (events.isEmpty) {
+        return Container(
+          height: 180,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF3D5A47), Color(0xFF1A2E22)],
             ),
           ),
-          // Decorative circle
-          Positioned(
-            right: -30,
-            top: -30,
-            child: Container(
-              width: 160,
-              height: 160,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.05),
-              ),
-            ),
-          ),
-          // Content
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          clipBehavior: Clip.antiAlias,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Positioned(
+                right: -30,
+                top: -30,
+                child: Container(
+                  width: 160,
+                  height: 160,
                   decoration: BoxDecoration(
-                    color: AppColors.tertiary,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Text(
-                    'SEDANG BERLANGSUNG',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.05),
                   ),
                 ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Bersih Desa Festival',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Row(
+              ),
+              const Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.inventory_2_outlined,
-                        color: Colors.white70, size: 13),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${d?.jumlahPaketAktif ?? 0} Paket Aktif • Punden Bajulan',
-                      style: const TextStyle(color: Colors.white70, fontSize: 12),
-                    ),
+                    Icon(Icons.event_busy_outlined,
+                        color: Colors.white54, size: 32),
+                    SizedBox(height: 8),
+                    Text('Tidak ada event berlangsung',
+                        style:
+                            TextStyle(color: Colors.white70, fontSize: 13)),
                   ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
-    );
+        );
+      }
+
+      // Ada event — tampilkan yang pertama (ongoing diprioritaskan)
+      final event = events.firstWhere(
+        (e) => e.status == 'ongoing',
+        orElse: () => events.first,
+      );
+      final isOngoing = event.status == 'ongoing';
+
+      return Container(
+        height: 180,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          color: AppColors.primary,
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Gradient overlay
+            Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF3D5A47), Color(0xFF1A2E22)],
+                ),
+              ),
+            ),
+            // Decorative circle
+            Positioned(
+              right: -30,
+              top: -30,
+              child: Container(
+                width: 160,
+                height: 160,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.05),
+                ),
+              ),
+            ),
+            // Content
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: isOngoing
+                          ? AppColors.tertiary
+                          : AppColors.secondary,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      isOngoing ? 'SEDANG BERLANGSUNG' : 'AKAN DATANG',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    event.name,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(Icons.location_on_outlined,
+                          color: Colors.white70, size: 13),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          event.location.isNotEmpty
+                              ? event.location
+                              : '${d?.jumlahPaketAktif ?? 0} Paket Aktif',
+                          style: const TextStyle(
+                              color: Colors.white70, fontSize: 12),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (events.length > 1) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      '+${events.length - 1} event lainnya',
+                      style: const TextStyle(
+                          color: Colors.white54, fontSize: 11),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    });
   }
 
   // ── Booking Item ───────────────────────────────────────
@@ -513,13 +590,9 @@ class DashboardView extends StatelessWidget {
 
   // ── Helpers ────────────────────────────────────────────
   String _formatRevenue(int revenue) {
-    if (revenue >= 1000000) {
-      final m = revenue / 1000000;
-      return 'Rp ${m % 1 == 0 ? m.toInt() : m.toStringAsFixed(1)}M';
-    } else if (revenue >= 1000) {
-      return 'Rp ${(revenue / 1000).toStringAsFixed(0)}K';
-    }
-    return 'Rp $revenue';
+    final fmt = NumberFormat.currency(
+        locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+    return fmt.format(revenue);
   }
 
   void _confirmLogout(AuthService auth) {

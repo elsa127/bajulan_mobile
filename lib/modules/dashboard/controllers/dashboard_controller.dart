@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import '../../../app/data/api_service.dart';
 import '../../../app/data/models/dashboard_model.dart';
+import '../../../app/data/models/event_model.dart';
 import '../../notifications/controllers/notification_controller.dart';
 
 class DashboardController extends GetxController {
@@ -9,12 +10,12 @@ class DashboardController extends GetxController {
   var isLoading = true.obs;
   var dashboard = Rxn<DashboardModel>();
   var error = ''.obs;
+  var ongoingEvents = <EventModel>[].obs;
 
   @override
   void onInit() {
     super.onInit();
     fetch();
-    // Refresh notifikasi juga
     _refreshNotifications();
   }
 
@@ -22,9 +23,22 @@ class DashboardController extends GetxController {
     isLoading.value = true;
     error.value = '';
     try {
-      final res = await _api.get('/admin/dashboard');
-      dashboard.value = DashboardModel.fromJson(res);
-      // Refresh notifikasi setiap kali fetch dashboard
+      // Fetch dashboard dan event berlangsung secara paralel
+      final results = await Future.wait([
+        _api.get('/admin/dashboard'),
+        _api.get('/admin/events'),
+      ]);
+
+      dashboard.value = DashboardModel.fromJson(results[0]);
+
+      // Filter event yang sedang berlangsung atau upcoming
+      final raw = results[1]['data'] ?? [];
+      final list = raw is List ? raw.cast<Map<String, dynamic>>() : [];
+      ongoingEvents.value = list
+          .map((e) => EventModel.fromJson(e))
+          .where((e) => e.status == 'ongoing' || e.status == 'upcoming')
+          .toList();
+
       _refreshNotifications();
     } catch (e) {
       error.value = e.toString().replaceFirst('Exception: ', '');
