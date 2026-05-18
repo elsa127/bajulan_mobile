@@ -9,14 +9,59 @@ class BookingController extends GetxController {
   var bookings = <BookingModel>[].obs;
   var error = ''.obs;
   var selectedFilter = 'semua'.obs;
+  var selectedMonth = Rxn<DateTime>(); // null = semua bulan
 
   final filters = ['semua', 'paid', 'pending', 'cancelled'];
 
   List<BookingModel> get filtered {
-    if (selectedFilter.value == 'semua') return bookings;
-    return bookings
-        .where((b) => b.status.toLowerCase() == selectedFilter.value)
-        .toList();
+    var list = bookings.toList();
+
+    // Filter status
+    if (selectedFilter.value != 'semua') {
+      list = list
+          .where((b) => b.status.toLowerCase() == selectedFilter.value)
+          .toList();
+    }
+
+    // Filter bulan
+    if (selectedMonth.value != null) {
+      final m = selectedMonth.value!;
+      list = list.where((b) {
+        if (b.createdAt == null) return false;
+        try {
+          final d = DateTime.parse(b.createdAt!);
+          return d.year == m.year && d.month == m.month;
+        } catch (_) {
+          return false;
+        }
+      }).toList();
+    }
+
+    return list;
+  }
+
+  // Pendapatan dari filtered list (hanya paid/confirmed)
+  int get filteredRevenue => filtered
+      .where((b) => b.status == 'paid' || b.status == 'confirmed')
+      .fold(0, (sum, b) => sum + b.totalPrice);
+
+  // Daftar bulan yang tersedia dari data booking
+  List<DateTime> get availableMonths {
+    final months = <DateTime>{};
+    for (final b in bookings) {
+      if (b.createdAt != null) {
+        try {
+          final d = DateTime.parse(b.createdAt!);
+          months.add(DateTime(d.year, d.month));
+        } catch (_) {}
+      }
+    }
+    final sorted = months.toList()..sort((a, b) => b.compareTo(a));
+    return sorted;
+  }
+
+  void selectMonth(DateTime? month) {
+    selectedMonth.value = month;
   }
 
   @override
@@ -31,7 +76,9 @@ class BookingController extends GetxController {
     try {
       final res = await _api.get('/admin/bookings');
       final raw = res['data'] ?? res['bookings'] ?? [];
-      final list = raw is List ? raw.cast<Map<String, dynamic>>() : <Map<String, dynamic>>[];
+      final list = raw is List
+          ? raw.cast<Map<String, dynamic>>()
+          : <Map<String, dynamic>>[];
       bookings.value = list.map((e) => BookingModel.fromJson(e)).toList();
     } catch (e) {
       error.value = e.toString().replaceFirst('Exception: ', '');

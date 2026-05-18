@@ -77,58 +77,116 @@ class BookingView extends StatelessWidget {
       padding: EdgeInsets.fromLTRB(
           20, MediaQuery.of(context).padding.top + 16, 20, 12),
       child: Obx(() {
-        // Hanya hitung booking yang lunas (paid/confirmed)
-        final paidBookings = c.bookings
-            .where((b) => b.status == 'paid' || b.status == 'confirmed')
-            .toList();
-        final paid = paidBookings.length;
-        final pending = c.bookings.where((b) => b.status == 'pending').length;
-        final cancelled =
-            c.bookings.where((b) => b.status == 'cancelled').length;
-        final totalRevenue =
-            paidBookings.fold<int>(0, (sum, b) => sum + b.totalPrice);
         final fmt = NumberFormat.currency(
             locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+        final monthFmt = DateFormat('MMMM yyyy', 'id_ID');
+
+        final paid = c.bookings.where((b) => b.status == 'paid' || b.status == 'confirmed').length;
+        final pending = c.bookings.where((b) => b.status == 'pending').length;
+        final cancelled = c.bookings.where((b) => b.status == 'cancelled').length;
+
+        // Pendapatan dari filtered (sesuai bulan & status yang dipilih)
+        final revenue = c.filteredRevenue;
+        final selectedMonth = c.selectedMonth.value;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Daftar Pemesanan',
-              style: TextStyle(
-                color: AppColors.primary,
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 2),
-            const Text(
-              'Kelola semua pemesanan wisata',
-              style: TextStyle(color: AppColors.outline, fontSize: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Daftar Pemesanan',
+                      style: TextStyle(
+                        color: AppColors.primary,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 2),
+                    Text(
+                      'Kelola semua pemesanan wisata',
+                      style: TextStyle(color: AppColors.outline, fontSize: 12),
+                    ),
+                  ],
+                ),
+                // Tombol filter bulan
+                GestureDetector(
+                  onTap: () => _showMonthPicker(context, c),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: selectedMonth != null
+                          ? AppColors.primary
+                          : AppColors.surfaceVariant,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.calendar_month_outlined,
+                            size: 14,
+                            color: selectedMonth != null
+                                ? Colors.white
+                                : AppColors.outline),
+                        const SizedBox(width: 4),
+                        Text(
+                          selectedMonth != null
+                              ? monthFmt.format(selectedMonth)
+                              : 'Semua Bulan',
+                          style: TextStyle(
+                            color: selectedMonth != null
+                                ? Colors.white
+                                : AppColors.outline,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        if (selectedMonth != null) ...[
+                          const SizedBox(width: 4),
+                          GestureDetector(
+                            onTap: () => c.selectMonth(null),
+                            child: const Icon(Icons.close,
+                                size: 12, color: Colors.white),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 12),
-            // Total pendapatan (hanya lunas)
+            // Total pendapatan lunas (sesuai filter bulan)
             Container(
               width: double.infinity,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: Colors.green.withValues(alpha: 0.08),
+                color: AppColors.success.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.green.withValues(alpha: 0.2)),
+                border: Border.all(
+                    color: AppColors.success.withValues(alpha: 0.2)),
               ),
               child: Row(
                 children: [
                   const Icon(Icons.payments_outlined,
-                      color: Colors.green, size: 16),
+                      color: AppColors.success, size: 16),
                   const SizedBox(width: 8),
-                  const Text('Total pendapatan lunas: ',
-                      style:
-                          TextStyle(color: AppColors.outline, fontSize: 12)),
                   Text(
-                    fmt.format(totalRevenue),
+                    selectedMonth != null
+                        ? 'Pendapatan ${monthFmt.format(selectedMonth)}: '
+                        : 'Total pendapatan lunas: ',
                     style: const TextStyle(
-                      color: Colors.green,
+                        color: AppColors.outline, fontSize: 12),
+                  ),
+                  Text(
+                    fmt.format(revenue),
+                    style: const TextStyle(
+                      color: AppColors.success,
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
                     ),
@@ -140,16 +198,86 @@ class BookingView extends StatelessWidget {
             // Stat chips
             Row(
               children: [
-                _statChip('Lunas', paid.toString(), Colors.green),
+                _statChip('Lunas', paid.toString(), AppColors.success),
                 const SizedBox(width: 8),
                 _statChip('Menunggu', pending.toString(), Colors.orange),
                 const SizedBox(width: 8),
-                _statChip('Batal', cancelled.toString(), Colors.red),
+                _statChip('Batal', cancelled.toString(), AppColors.error),
               ],
             ),
           ],
         );
       }),
+    );
+  }
+
+  void _showMonthPicker(BuildContext context, BookingController c) {
+    final months = c.availableMonths;
+    if (months.isEmpty) {
+      Get.snackbar('Info', 'Belum ada data booking.',
+          snackPosition: SnackPosition.BOTTOM);
+      return;
+    }
+    final monthFmt = DateFormat('MMMM yyyy', 'id_ID');
+    Get.bottomSheet(
+      Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                    color: AppColors.muted,
+                    borderRadius: BorderRadius.circular(2)),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text('Filter Bulan',
+                style: TextStyle(
+                    color: AppColors.primary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            // Opsi semua bulan
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.calendar_today_outlined,
+                  color: AppColors.outline),
+              title: const Text('Semua Bulan'),
+              trailing: c.selectedMonth.value == null
+                  ? const Icon(Icons.check, color: AppColors.primary)
+                  : null,
+              onTap: () {
+                c.selectMonth(null);
+                Get.back();
+              },
+            ),
+            const Divider(),
+            ...months.map((m) => ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.calendar_month_outlined,
+                      color: AppColors.secondary),
+                  title: Text(monthFmt.format(m)),
+                  trailing: c.selectedMonth.value?.year == m.year &&
+                          c.selectedMonth.value?.month == m.month
+                      ? const Icon(Icons.check, color: AppColors.primary)
+                      : null,
+                  onTap: () {
+                    c.selectMonth(m);
+                    Get.back();
+                  },
+                )),
+          ],
+        ),
+      ),
     );
   }
 
