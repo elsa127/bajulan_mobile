@@ -56,8 +56,11 @@ class NotificationService extends GetxService {
             _channelId,
             _channelName,
             description: _channelDesc,
-            importance: Importance.high,
+            importance: Importance.max, // MAX agar muncul sebagai popup
             playSound: true,
+            enableVibration: true,
+            enableLights: true,
+            showBadge: true,
           ),
         );
   }
@@ -116,11 +119,14 @@ class NotificationService extends GetxService {
           _channelId,
           _channelName,
           channelDescription: _channelDesc,
-          importance: Importance.high,
-          priority: Priority.high,
+          importance: Importance.max,
+          priority: Priority.max,
           icon: '@mipmap/ic_launcher',
           playSound: true,
           enableVibration: true,
+          enableLights: true,
+          fullScreenIntent: false, // true = paksa muncul saat layar terkunci
+          visibility: NotificationVisibility.public,
         ),
         iOS: const DarwinNotificationDetails(
           presentAlert: true,

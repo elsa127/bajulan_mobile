@@ -212,13 +212,14 @@ class BookingView extends StatelessWidget {
   }
 
   void _showMonthPicker(BuildContext context, BookingController c) {
-    final months = c.availableMonths;
-    if (months.isEmpty) {
-      Get.snackbar('Info', 'Belum ada data booking.',
-          snackPosition: SnackPosition.BOTTOM);
-      return;
-    }
+    final now = DateTime.now();
     final monthFmt = DateFormat('MMMM yyyy', 'id_ID');
+
+    // Generate 24 bulan terakhir
+    final months = List.generate(24, (i) {
+      return DateTime(now.year, now.month - i);
+    });
+
     Get.bottomSheet(
       Container(
         decoration: const BoxDecoration(
@@ -246,35 +247,42 @@ class BookingView extends StatelessWidget {
                     fontSize: 16,
                     fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
-            // Opsi semua bulan
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.calendar_today_outlined,
-                  color: AppColors.outline),
-              title: const Text('Semua Bulan'),
-              trailing: c.selectedMonth.value == null
-                  ? const Icon(Icons.check, color: AppColors.primary)
-                  : null,
-              onTap: () {
-                c.selectMonth(null);
-                Get.back();
-              },
+            SizedBox(
+              height: 320,
+              child: ListView(
+                children: [
+                  // Opsi semua bulan
+                  Obx(() => ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: const Icon(Icons.calendar_today_outlined,
+                            color: AppColors.outline),
+                        title: const Text('Semua Bulan'),
+                        trailing: c.selectedMonth.value == null
+                            ? const Icon(Icons.check, color: AppColors.primary)
+                            : null,
+                        onTap: () {
+                          c.selectMonth(null);
+                          Get.back();
+                        },
+                      )),
+                  const Divider(),
+                  ...months.map((m) => Obx(() => ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: const Icon(Icons.calendar_month_outlined,
+                            color: AppColors.secondary),
+                        title: Text(monthFmt.format(m)),
+                        trailing: c.selectedMonth.value?.year == m.year &&
+                                c.selectedMonth.value?.month == m.month
+                            ? const Icon(Icons.check, color: AppColors.primary)
+                            : null,
+                        onTap: () {
+                          c.selectMonth(m);
+                          Get.back();
+                        },
+                      ))),
+                ],
+              ),
             ),
-            const Divider(),
-            ...months.map((m) => ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.calendar_month_outlined,
-                      color: AppColors.secondary),
-                  title: Text(monthFmt.format(m)),
-                  trailing: c.selectedMonth.value?.year == m.year &&
-                          c.selectedMonth.value?.month == m.month
-                      ? const Icon(Icons.check, color: AppColors.primary)
-                      : null,
-                  onTap: () {
-                    c.selectMonth(m);
-                    Get.back();
-                  },
-                )),
           ],
         ),
       ),
