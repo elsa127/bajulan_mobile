@@ -14,6 +14,8 @@ class LoginController extends GetxController {
   var isObscured = true.obs;
   var isLoading = false.obs;
   var rememberMe = false.obs;
+  var usernameError = false.obs; // border merah field username
+  var passwordError = false.obs; // border merah field password
 
   @override
   void onInit() {
@@ -21,6 +23,10 @@ class LoginController extends GetxController {
     // Initialize controllers in onInit
     usernameCtrl = TextEditingController();
     passwordCtrl = TextEditingController();
+
+    // Reset error masing-masing field saat user mengetik
+    usernameCtrl.addListener(() => usernameError.value = false);
+    passwordCtrl.addListener(() => passwordError.value = false);
     
     // Load saved username jika remember me aktif
     final saved = _box.read<String>('saved_username');
@@ -38,6 +44,8 @@ class LoginController extends GetxController {
     final password = passwordCtrl.text.trim();
 
     if (username.isEmpty || password.isEmpty) {
+      usernameError.value = username.isEmpty;
+      passwordError.value = password.isEmpty;
       Get.snackbar('Peringatan', 'Username dan kata sandi harus diisi.',
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.orange,
@@ -46,8 +54,9 @@ class LoginController extends GetxController {
     }
 
     isLoading.value = true;
+    usernameError.value = false;
+    passwordError.value = false;
     try {
-      // Kirim sebagai 'email' karena Laravel Sanctum pakai email untuk auth
       await _auth.login(username, password);
 
       if (rememberMe.value) {
@@ -58,6 +67,12 @@ class LoginController extends GetxController {
 
       Get.offAllNamed(AppRoutes.adminDashboard);
     } catch (e) {
+      // Tidak bisa tahu field mana yang salah dari response server,
+      // tapi secara UX: username salah → merah username,
+      // password salah → merah password.
+      // Karena API hanya bilang "salah", merahkan keduanya.
+      usernameError.value = true;
+      passwordError.value = true;
       Get.snackbar('Login Gagal', e.toString().replaceFirst('Exception: ', ''),
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.redAccent,

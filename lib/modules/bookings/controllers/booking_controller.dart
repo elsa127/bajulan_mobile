@@ -67,7 +67,17 @@ class BookingController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    _cleanPendingBookings();
     fetch();
+  }
+
+  // Trigger auto-cancel booking expired di backend
+  Future<void> _cleanPendingBookings() async {
+    try {
+      await _api.get('/admin/artisan/clean-pending-bookings');
+    } catch (_) {
+      // Silent fail — tidak perlu tampilkan error ke user
+    }
   }
 
   Future<void> fetch() async {

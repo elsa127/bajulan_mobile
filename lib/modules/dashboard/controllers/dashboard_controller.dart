@@ -16,7 +16,17 @@ class DashboardController extends GetxController {
   void onInit() {
     super.onInit();
     fetch();
+    _cleanPendingBookings();
     _refreshNotifications();
+  }
+
+  // Trigger auto-cancel booking expired di backend
+  Future<void> _cleanPendingBookings() async {
+    try {
+      await _api.get('/admin/artisan/clean-pending-bookings');
+    } catch (_) {
+      // Silent fail
+    }
   }
 
   Future<void> fetch() async {

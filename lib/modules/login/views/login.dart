@@ -25,7 +25,7 @@ class LoginView extends GetView<LoginController> {
                 _buildFooter(),
                 const SizedBox(height: 16),
                 const Text(
-                  'Versi 2.4.0 • Bajulan Digital Ecosystem',
+                  'Versi 1.0 • Bajulan Digital Ecosystem',
                   style: TextStyle(color: AppColors.outline, fontSize: 11),
                 ),
                 const SizedBox(height: 16),
@@ -101,12 +101,13 @@ class LoginView extends GetView<LoginController> {
 
           // Username
           _label('Username'),
-          _inputField(
+          Obx(() => _inputField(
             controller: controller.usernameCtrl,
             hint: 'admin_bajulan',
             icon: Icons.person_outline,
             keyboardType: TextInputType.text,
-          ),
+            hasError: controller.usernameError.value,
+          )),
           const SizedBox(height: 16),
 
           // Password
@@ -278,11 +279,17 @@ class LoginView extends GetView<LoginController> {
     required String hint,
     required IconData icon,
     TextInputType keyboardType = TextInputType.text,
+    bool hasError = false,
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F2ED),
+        color: hasError
+            ? AppColors.error.withValues(alpha: 0.06)
+            : const Color(0xFFF5F2ED),
         borderRadius: BorderRadius.circular(12),
+        border: hasError
+            ? Border.all(color: AppColors.error, width: 1.5)
+            : null,
       ),
       child: TextField(
         controller: controller,
@@ -292,8 +299,11 @@ class LoginView extends GetView<LoginController> {
           hintText: hint,
           hintStyle:
               const TextStyle(color: AppColors.muted, fontSize: 14),
-          prefixIcon:
-              Icon(icon, color: AppColors.muted, size: 20),
+          prefixIcon: Icon(
+            icon,
+            color: hasError ? AppColors.error : AppColors.muted,
+            size: 20,
+          ),
           border: InputBorder.none,
           contentPadding:
               const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
@@ -303,10 +313,16 @@ class LoginView extends GetView<LoginController> {
   }
 
   Widget _passwordField() {
+    final hasError = controller.passwordError.value;
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F2ED),
+        color: hasError
+            ? AppColors.error.withValues(alpha: 0.06)
+            : const Color(0xFFF5F2ED),
         borderRadius: BorderRadius.circular(12),
+        border: hasError
+            ? Border.all(color: AppColors.error, width: 1.5)
+            : null,
       ),
       child: TextField(
         controller: controller.passwordCtrl,
@@ -315,8 +331,11 @@ class LoginView extends GetView<LoginController> {
         decoration: InputDecoration(
           hintText: '••••••••',
           hintStyle: const TextStyle(color: AppColors.muted),
-          prefixIcon:
-              const Icon(Icons.lock_outline, color: AppColors.muted, size: 20),
+          prefixIcon: Icon(
+            Icons.lock_outline,
+            color: hasError ? AppColors.error : AppColors.muted,
+            size: 20,
+          ),
           suffixIcon: IconButton(
             icon: Icon(
               controller.isObscured.value

@@ -75,12 +75,9 @@ class AppPages {
     GetPage(
       name: AppRoutes.login,
       page: () => const LoginView(),
-      binding: BindingsBuilder(() {
-        // Use permanent to prevent disposal on navigation
-        if (!Get.isRegistered<LoginController>()) {
-          Get.put(LoginController(), permanent: true);
-        }
-      }),
+      binding: BindingsBuilder(
+        () => Get.lazyPut(() => LoginController(), fenix: true),
+      ),
     ),
 
     // ── ADMIN ───────────────────────────────────────────

@@ -23,7 +23,7 @@ class ApiService extends GetxService {
       final res = await http
           .get(Uri.parse('${AppConstants.baseUrl}$path'), headers: _headers)
           .timeout(const Duration(seconds: 30));
-      return _handle(res);
+      return _handle(res, path);
     } catch (e) {
       throw Exception(_friendlyError(e));
     }
@@ -39,7 +39,7 @@ class ApiService extends GetxService {
             body: jsonEncode(body),
           )
           .timeout(const Duration(seconds: 30));
-      return _handle(res);
+      return _handle(res, path);
     } catch (e) {
       throw Exception(_friendlyError(e));
     }
@@ -55,7 +55,7 @@ class ApiService extends GetxService {
             body: jsonEncode(body),
           )
           .timeout(const Duration(seconds: 30));
-      return _handle(res);
+      return _handle(res, path);
     } catch (e) {
       throw Exception(_friendlyError(e));
     }
@@ -67,7 +67,7 @@ class ApiService extends GetxService {
       final res = await http
           .delete(Uri.parse('${AppConstants.baseUrl}$path'), headers: _headers)
           .timeout(const Duration(seconds: 30));
-      return _handle(res);
+      return _handle(res, path);
     } catch (e) {
       throw Exception(_friendlyError(e));
     }
@@ -91,14 +91,14 @@ class ApiService extends GetxService {
 
       final streamed = await req.send().timeout(const Duration(seconds: 60));
       final res = await http.Response.fromStream(streamed);
-      return _handle(res);
+      return _handle(res, path);
     } catch (e) {
       throw Exception(_friendlyError(e));
     }
   }
 
   // ─── HANDLER ───────────────────────────────────────────
-  Map<String, dynamic> _handle(http.Response res) {
+  Map<String, dynamic> _handle(http.Response res, String path) {
     Map<String, dynamic> body;
     try {
       body = jsonDecode(res.body) as Map<String, dynamic>;
@@ -107,6 +107,10 @@ class ApiService extends GetxService {
     }
 
     if (res.statusCode == 401) {
+      // Jangan auto-logout jika sedang proses login
+      if (path.contains('/auth/login')) {
+        throw Exception('Email atau password salah. Silakan coba lagi.');
+      }
       _box.remove(AppConstants.tokenKey);
       _box.remove(AppConstants.userKey);
       Get.offAllNamed('/login');
