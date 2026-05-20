@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'app_routes.dart';
 import '../data/auth_service.dart';
 
-// Public
+// Halaman publik
 import '../../modules/login/home/views/home_view.dart';
 import '../../modules/login/home/controllers/home_controller.dart';
 import '../../modules/packages/views/package_detail_view.dart';
@@ -14,11 +14,11 @@ import '../../modules/booking/views/payment_view.dart';
 import '../../modules/booking/views/booking_status_view.dart';
 import '../../modules/booking/controllers/booking_status_controller.dart';
 
-// Auth
+// Autentikasi
 import '../../modules/login/views/login.dart';
 import '../../modules/login/controllers/login_controller.dart';
 
-// Admin
+// Halaman admin
 import '../../modules/dashboard/views/dashboard_view.dart';
 import '../../modules/dashboard/controllers/dashboard_controller.dart';
 import '../../modules/packages/views/admin_packages_view.dart';
@@ -40,7 +40,6 @@ import '../../modules/splash/splash_view.dart';
 
 class AppPages {
   static final pages = [
-    // ── SPLASH ──────────────────────────────────────────
     GetPage(
       name: AppRoutes.splash,
       page: () => const SplashView(),
@@ -71,7 +70,7 @@ class AppPages {
       binding: BindingsBuilder(() => Get.lazyPut(() => BookingStatusController(), fenix: true)),
     ),
 
-    // ── AUTH ────────────────────────────────────────────
+    // Halaman login
     GetPage(
       name: AppRoutes.login,
       page: () => const LoginView(),
@@ -80,7 +79,7 @@ class AppPages {
       ),
     ),
 
-    // ── ADMIN ───────────────────────────────────────────
+    // Halaman admin — semua dilindungi AuthMiddleware
     GetPage(
       name: AppRoutes.adminDashboard,
       page: () => const DashboardView(),
@@ -134,7 +133,7 @@ class AppPages {
   ];
 }
 
-// ── Auth Guard ──────────────────────────────────────────
+// Penjaga rute — redirect ke login jika belum autentikasi
 class AuthMiddleware extends GetMiddleware {
   @override
   RouteSettings? redirect(String? route) {

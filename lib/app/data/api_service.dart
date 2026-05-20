@@ -11,14 +11,14 @@ class ApiService extends GetxService {
 
   String? get _token => _box.read(AppConstants.tokenKey);
 
-  // Bearer token
+  // Header dengan token autentikasi
   Map<String, String> get _headers => {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
         if (_token != null) 'Authorization': 'Bearer $_token',
       };
 
-  // GET /path
+  // Ambil data dari API
   Future<Map<String, dynamic>> get(String path) async {
     try {
       final res = await http
@@ -30,7 +30,7 @@ class ApiService extends GetxService {
     }
   }
 
-  // POST /path
+  // Kirim data ke API
   Future<Map<String, dynamic>> post(String path, Map<String, dynamic> body) async {
     try {
       final res = await http
@@ -46,7 +46,7 @@ class ApiService extends GetxService {
     }
   }
 
-  // PUT /path
+  // Perbarui data di API
   Future<Map<String, dynamic>> put(String path, Map<String, dynamic> body) async {
     try {
       final res = await http
@@ -62,7 +62,7 @@ class ApiService extends GetxService {
     }
   }
 
-  // DELETE /path
+  // Hapus data dari API
   Future<Map<String, dynamic>> delete(String path) async {
     try {
       final res = await http
@@ -74,7 +74,7 @@ class ApiService extends GetxService {
     }
   }
 
-  // POST multipart (file upload)
+  // Upload file (multipart)
   Future<Map<String, dynamic>> postMultipart(
     String path, {
     Map<String, String>? fields,
@@ -98,6 +98,7 @@ class ApiService extends GetxService {
     }
   }
 
+  // Proses respons dari server
   Map<String, dynamic> _handle(http.Response res, String path) {
     Map<String, dynamic> body;
     try {
@@ -107,7 +108,7 @@ class ApiService extends GetxService {
     }
 
     if (res.statusCode == 401) {
-      // Skip auto-logout on login endpoint
+      // Jangan auto-logout saat proses login
       if (path.contains('/auth/login')) {
         throw Exception('Email atau password salah. Silakan coba lagi.');
       }
@@ -140,6 +141,7 @@ class ApiService extends GetxService {
     return body;
   }
 
+  // pesan eror
   String _friendlyError(dynamic e) {
     final str = e.toString();
 
@@ -178,6 +180,7 @@ class ApiService extends GetxService {
     return 'Tidak dapat terhubung ke server.\nPeriksa koneksi internet dan coba lagi.';
   }
 
+  // Gabungkan semua pesan error validasi menjadi satu string
   String _flattenErrors(dynamic errors) {
     if (errors is Map) {
       return errors.values

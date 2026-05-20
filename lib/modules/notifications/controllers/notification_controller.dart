@@ -15,7 +15,7 @@ class NotificationController extends GetxController {
   var isLoading = false.obs;
   var error = ''.obs;
 
-  // Set ID notif yang sudah dibaca — persisted ke storage
+  // ID notifikasi yang sudah dibaca, disimpan secara persisten
   final Set<String> _readIds = {};
 
   int get unreadCount => notifications.where((n) => !n.isRead).length;
@@ -23,7 +23,7 @@ class NotificationController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    // Load read IDs dari storage
+    // Muat ID yang sudah dibaca dari penyimpanan lokal
     final saved = _box.read<List>(_readKey);
     if (saved != null) {
       _readIds.addAll(saved.map((e) => e.toString()));
@@ -31,19 +31,18 @@ class NotificationController extends GetxController {
     fetch();
   }
 
-  // ── Fetch dari booking recent ─────────────────────────
+  // [BACA] Ambil notifikasi dari booking terbaru — GET /admin/bookings?limit=50
   Future<void> fetch() async {
     isLoading.value = true;
     error.value = '';
     try {
-      // Ambil booking 7 hari terakhir supaya notif kemarin tidak hilang
       final res = await _api.get('/admin/bookings?limit=50');
       final raw = res['data'] ?? res['bookings'] ?? [];
       final list = raw is List
           ? raw.cast<Map<String, dynamic>>()
           : <Map<String, dynamic>>[];
 
-      // Filter hanya 7 hari terakhir di sisi Flutter
+      // Filter sisi klien: hanya 7 hari terakhir
       final cutoff = DateTime.now().subtract(const Duration(days: 7));
 
       final newNotifs = list
@@ -54,7 +53,7 @@ class NotificationController extends GetxController {
           .where((n) => n.time.isAfter(cutoff))
           .toList();
 
-      // Pertahankan status baca dari notif yang sudah ada
+      // Pertahankan status baca dari notifikasi yang sudah ada
       for (final notif in newNotifs) {
         final existing = notifications.firstWhereOrNull(
           (n) => n.uniqueId == notif.uniqueId,
@@ -72,7 +71,7 @@ class NotificationController extends GetxController {
     }
   }
 
-  // ── Convert booking ke notification ───────────────────
+  // Ubah data booking menjadi model notifikasi
   NotificationModel _bookingToNotification(BookingModel booking) {
     String title;
     String body;
@@ -102,11 +101,9 @@ class NotificationController extends GetxController {
     }
 
     final uniqueId = booking.id?.toString() ?? booking.code;
-
-    // Cek apakah sudah pernah dibaca (dari storage)
     final alreadyRead = _readIds.contains(uniqueId);
 
-    // Kalau belum pernah dibaca, cek apakah booking baru (< 24 jam)
+    // Tandai sebagai baru hanya jika belum dibaca dan dibuat dalam 24 jam terakhir
     final isNew = !alreadyRead &&
         booking.createdAt != null &&
         DateTime.now()
@@ -131,7 +128,7 @@ class NotificationController extends GetxController {
     );
   }
 
-  // ── Mark as read ───────────────────────────────────────
+  // [UBAH] Tandai satu notifikasi sebagai sudah dibaca
   Future<void> markAsRead(String id) async {
     final idx = notifications.indexWhere((n) => n.uniqueId == id);
     if (idx == -1) return;
@@ -139,12 +136,11 @@ class NotificationController extends GetxController {
     notifications[idx].isRead = true;
     notifications.refresh();
 
-    // Simpan ke storage agar persisten
     _readIds.add(id);
     _saveReadIds();
   }
 
-  // ── Mark all as read ───────────────────────────────────
+  // [UBAH] Tandai semua notifikasi sebagai sudah dibaca
   Future<void> markAllRead() async {
     for (final n in notifications) {
       n.isRead = true;
@@ -158,7 +154,7 @@ class NotificationController extends GetxController {
     _box.write(_readKey, _readIds.toList());
   }
 
-  // ── Handle notification tap ────────────────────────────
+  // Tangani tap notifikasi — navigasi ke detail booking
   void handleTap(NotificationModel notif) {
     markAsRead(notif.uniqueId);
     if (notif.bookingId != null) {
@@ -171,7 +167,7 @@ class NotificationController extends GetxController {
     }
   }
 
-  // ── Kelompokkan berdasarkan hari ───────────────────────
+  // Kelompokkan notifikasi berdasarkan label hari
   Map<String, List<NotificationModel>> get grouped {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -193,7 +189,7 @@ class NotificationController extends GetxController {
     return result;
   }
 
-  // ── Time ago helper ────────────────────────────────────
+  // Format waktu relatif (misal: "5 menit lalu")
   String timeAgo(DateTime time) {
     final diff = DateTime.now().difference(time);
     if (diff.inMinutes < 1) return 'Baru saja';

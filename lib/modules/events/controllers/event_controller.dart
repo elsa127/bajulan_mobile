@@ -13,11 +13,10 @@ class EventController extends GetxController {
   var error = ''.obs;
   var searchQuery = ''.obs;
 
-  // Daftar paket untuk dropdown
+  // Daftar paket untuk dropdown asosiasi event-paket
   var packages = <PackageModel>[].obs;
   var isLoadingPackages = false.obs;
 
-  // Form fields
   final nameCtrl = TextEditingController();
   final descCtrl = TextEditingController();
   final locationCtrl = TextEditingController();
@@ -44,21 +43,21 @@ class EventController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    // Trigger auto-update status event dari backend
     _updateEventStatus();
     fetch();
     fetchPackages();
   }
 
-  // ── Auto update status event dari backend ─────────────
+  // Picu sinkronisasi status event di backend — GET /admin/artisan/update-event-status
   Future<void> _updateEventStatus() async {
     try {
       await _api.get('/admin/artisan/update-event-status');
     } catch (_) {
-      // Silent fail — tidak perlu tampilkan error ke user
+      // Gagal diam-diam, tidak perlu tampilkan error
     }
   }
 
+  // [BACA] Ambil semua event — GET /admin/events
   Future<void> fetch() async {
     isLoading.value = true;
     error.value = '';
@@ -76,6 +75,7 @@ class EventController extends GetxController {
     }
   }
 
+  // [BACA] Ambil daftar paket untuk dropdown — GET /admin/packages
   Future<void> fetchPackages() async {
     isLoadingPackages.value = true;
     try {
@@ -86,12 +86,13 @@ class EventController extends GetxController {
           : <Map<String, dynamic>>[];
       packages.value = list.map((e) => PackageModel.fromJson(e)).toList();
     } catch (_) {
-      // Gagal fetch paket tidak perlu tampilkan error
+      // Tidak kritis — dropdown paket akan kosong
     } finally {
       isLoadingPackages.value = false;
     }
   }
 
+  // [BUAT] Tambah event baru — POST /admin/events
   Future<void> store() async {
     if (nameCtrl.text.trim().isEmpty || selectedDate.value == null) {
       Get.snackbar('Peringatan', 'Nama dan tanggal event harus diisi.',
@@ -138,6 +139,7 @@ class EventController extends GetxController {
     }
   }
 
+  // [UBAH] Perbarui event — PUT /admin/events/:id
   Future<void> updateEvent(int id) async {
     if (nameCtrl.text.trim().isEmpty || selectedDate.value == null) {
       Get.snackbar('Peringatan', 'Nama dan tanggal event harus diisi.',
@@ -184,13 +186,13 @@ class EventController extends GetxController {
     }
   }
 
+  // Isi form dengan data event yang akan diedit
   void fillFormForEdit(EventModel event) {
     nameCtrl.text = event.name;
     descCtrl.text = event.description;
     locationCtrl.text = event.location;
     selectedStatus.value = event.status;
     selectedPackageId.value = event.packageId;
-    // Parse start/end time
     if (event.startTime != null && event.startTime!.isNotEmpty) {
       final parts = event.startTime!.split(':');
       if (parts.length >= 2) {
@@ -226,6 +228,7 @@ class EventController extends GetxController {
     }
   }
 
+  // [HAPUS] Hapus event — DELETE /admin/events/:id
   Future<void> delete(int id) async {
     try {
       await _api.delete('/admin/events/$id');

@@ -13,6 +13,7 @@ class AuthService extends GetxService {
   @override
   void onInit() {
     super.onInit();
+    // Cek token tersimpan saat app dibuka
     final token = _box.read<String>(AppConstants.tokenKey);
     if (token != null) {
       isLoggedIn.value = true;
@@ -24,14 +25,14 @@ class AuthService extends GetxService {
     }
   }
 
-  // POST /auth/login
+  // [LOGIN] POST /auth/login
   Future<void> login(String email, String password) async {
     final res = await _api.post('/auth/login', {
       'email': email,
       'password': password,
     });
 
-    // Response: { success: true, data: { user: {...}, token: "..." } }
+    // Respons: { success: true, data: { user: {...}, token: "..." } }
     final data = res['data'] as Map<String, dynamic>?;
     final token = data?['token'] as String?;
 
@@ -50,7 +51,7 @@ class AuthService extends GetxService {
     isLoggedIn.value = true;
   }
 
-  // GET /auth/me — refresh user data on startup
+  // Refresh data user saat startup — GET /auth/me
   Future<void> _fetchMe() async {
     try {
       final res = await _api.get('/auth/me');
@@ -64,12 +65,12 @@ class AuthService extends GetxService {
     }
   }
 
-  // POST /auth/logout
+  // [LOGOUT] POST /auth/logout
   Future<void> logout() async {
     try {
       await _api.post('/auth/logout', {});
     } catch (_) {
-      // proceed regardless
+      // Tetap lanjut logout meski request gagal
     } finally {
       _box.remove(AppConstants.tokenKey);
       _box.remove(AppConstants.userKey);

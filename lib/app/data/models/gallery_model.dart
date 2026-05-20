@@ -35,10 +35,7 @@ class GalleryModel {
   }
 
   factory GalleryModel.fromJson(Map<String, dynamic> json) {
-    // Debug: Disabled to reduce log noise
-    // debugPrint('[GalleryModel] Available keys: ${json.keys.toList()}');
-    
-    // Coba berbagai kemungkinan field name dari backend
+    // Coba berbagai kemungkinan nama field dari backend
     final rawUrl = json['full_url'] as String? ??
         json['image_url'] as String? ??
         json['image_path'] as String? ??
@@ -46,11 +43,7 @@ class GalleryModel {
         json['path'] as String? ??
         '';
 
-    // debugPrint('[GalleryModel] Raw URL from backend: "$rawUrl"');
-    
-    // Resolve URL
     final resolved = _resolveImageUrl(rawUrl);
-    // debugPrint('[GalleryModel] Resolved URL: "$resolved"');
 
     return GalleryModel(
       id: _parseInt(json['id']) ?? 0,
@@ -63,41 +56,26 @@ class GalleryModel {
     );
   }
 
-  /// Resolve image URL dari berbagai format path
+  // Ubah path relatif menjadi URL lengkap
   static String _resolveImageUrl(String? rawPath) {
-    if (rawPath == null || rawPath.isEmpty) {
-      // debugPrint('[GalleryModel] ⚠️ Empty or null path');
-      return '';
-    }
-    
-    // Jika sudah full URL, return as-is
+    if (rawPath == null || rawPath.isEmpty) return '';
+
     if (rawPath.startsWith('http://') || rawPath.startsWith('https://')) {
-      // debugPrint('[GalleryModel] ✓ Full URL detected');
       return rawPath;
     }
-    
-    // Bersihkan leading slash
+
     final cleanPath = rawPath.startsWith('/') ? rawPath.substring(1) : rawPath;
-    
-    // Deteksi folder dari path dan build URL
-    String resolvedUrl;
+
     if (cleanPath.startsWith('storage/')) {
-      // Path sudah include "storage/"
-      resolvedUrl = '$_baseUrl/$cleanPath';
+      return '$_baseUrl/$cleanPath';
     } else if (cleanPath.startsWith('uploads/')) {
-      // Path sudah include "uploads/"
-      resolvedUrl = '$_baseUrl/$cleanPath';
+      return '$_baseUrl/$cleanPath';
     } else if (cleanPath.startsWith('galleries/')) {
-      // GANTI: Coba uploads dulu, karena storage 404
-      resolvedUrl = '$_baseUrl/uploads/$cleanPath';
-      // debugPrint('[GalleryModel] 🔄 Trying /uploads/ instead of /storage/');
+      // Gunakan /uploads/ — /storage/ mengembalikan 404 untuk path ini
+      return '$_baseUrl/uploads/$cleanPath';
     } else {
-      // Default: coba uploads dulu
-      resolvedUrl = '$_baseUrl/uploads/$cleanPath';
+      return '$_baseUrl/uploads/$cleanPath';
     }
-    
-    // debugPrint('[GalleryModel] "$rawPath" → "$resolvedUrl"');
-    return resolvedUrl;
   }
 
   static int? _parseInt(dynamic value) {

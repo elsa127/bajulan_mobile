@@ -14,21 +14,20 @@ class LoginController extends GetxController {
   var isObscured = true.obs;
   var isLoading = false.obs;
   var rememberMe = false.obs;
-  var usernameError = false.obs; // border merah field username
-  var passwordError = false.obs; // border merah field password
+  var usernameError = false.obs;
+  var passwordError = false.obs;
 
   @override
   void onInit() {
     super.onInit();
-    // Initialize controllers in onInit
     usernameCtrl = TextEditingController();
     passwordCtrl = TextEditingController();
 
-    // Reset error masing-masing field saat user mengetik
+    // Hilangkan border merah saat user mulai mengetik
     usernameCtrl.addListener(() => usernameError.value = false);
     passwordCtrl.addListener(() => passwordError.value = false);
-    
-    // Load saved username jika remember me aktif
+
+    // Isi username tersimpan jika remember me aktif
     final saved = _box.read<String>('saved_username');
     if (saved != null) {
       usernameCtrl.text = saved;
@@ -39,6 +38,7 @@ class LoginController extends GetxController {
   void toggleObscure() => isObscured.value = !isObscured.value;
   void toggleRemember() => rememberMe.value = !rememberMe.value;
 
+  // [LOGIN] POST /auth/login
   Future<void> login() async {
     final username = usernameCtrl.text.trim();
     final password = passwordCtrl.text.trim();
@@ -67,10 +67,7 @@ class LoginController extends GetxController {
 
       Get.offAllNamed(AppRoutes.adminDashboard);
     } catch (e) {
-      // Tidak bisa tahu field mana yang salah dari response server,
-      // tapi secara UX: username salah → merah username,
-      // password salah → merah password.
-      // Karena API hanya bilang "salah", merahkan keduanya.
+      // API tidak membedakan field mana yang salah — merahkan keduanya
       usernameError.value = true;
       passwordError.value = true;
       Get.snackbar('Login Gagal', e.toString().replaceFirst('Exception: ', ''),
@@ -84,9 +81,7 @@ class LoginController extends GetxController {
 
   @override
   void onClose() {
-    // DON'T dispose TextEditingControllers
-    // Let Dart's garbage collector handle it
-    // This prevents "used after being disposed" errors
+    // Tidak dispose controller — fenix: true bisa recreate controller ini
     super.onClose();
   }
 }

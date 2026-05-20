@@ -29,11 +29,9 @@ class EventModel {
     this.package,
   });
 
-  // URL gambar lengkap dari uploads
+  // Prioritaskan full_url, fallback ke imagePath
   String? get imageUrl {
-    // Cek full_url dulu (dari backend accessor)
     if (fullUrl != null && fullUrl!.isNotEmpty) return fullUrl;
-    // imagePath berisi nilai seperti "events/abc.jpg"
     if (imagePath == null || imagePath!.isEmpty) return null;
     if (imagePath!.startsWith('http')) return imagePath;
     final clean = imagePath!.startsWith('/') ? imagePath!.substring(1) : imagePath!;
@@ -43,7 +41,6 @@ class EventModel {
   String get packageName =>
       package?['name'] as String? ?? '';
 
-  // Label status untuk tampilan
   String get statusLabel {
     switch (status) {
       case 'upcoming': return 'Upcoming';
@@ -55,8 +52,6 @@ class EventModel {
   }
 
   factory EventModel.fromJson(Map<String, dynamic> json) {
-    // Backend field: image_path = "events/namafile.jpg"
-    // Backend TIDAK punya full_url accessor, jadi rawFullUrl akan selalu null
     final rawImagePath = json['image_path'] as String?;
     final rawFullUrl = json['full_url'] as String?;
 

@@ -7,11 +7,9 @@ import '../../../app/routes/app_routes.dart';
 class BookingFormController extends GetxController {
   final _api = Get.find<ApiService>();
 
-  // Package yang dipilih
   var package = Rxn<PackageModel>();
   var isLoadingPackage = true.obs;
 
-  // Form controllers
   final nameCtrl = TextEditingController();
   final phoneCtrl = TextEditingController();
   final emailCtrl = TextEditingController();
@@ -20,7 +18,8 @@ class BookingFormController extends GetxController {
 
   var visitDate = Rxn<DateTime>();
   var isSubmitting = false.obs;
-  var personCount = 1.obs; // reactive untuk estimasi total
+  // Jumlah orang reaktif untuk kalkulasi estimasi total harga
+  var personCount = 1.obs;
 
   @override
   void onInit() {
@@ -32,13 +31,13 @@ class BookingFormController extends GetxController {
     if (id != null) _fetchPackage(int.parse(id));
   }
 
+  // [BACA] Ambil detail paket — GET /packages/:id
   Future<void> _fetchPackage(int id) async {
     isLoadingPackage.value = true;
     try {
       final res = await _api.get('/packages/$id');
       final data = res['data'] as Map<String, dynamic>? ?? res;
       package.value = PackageModel.fromJson(data);
-      // set default min person
       personCtrl.text = package.value!.minPerson.toString();
     } catch (e) {
       Get.snackbar('Error', e.toString().replaceFirst('Exception: ', ''),
@@ -66,6 +65,7 @@ class BookingFormController extends GetxController {
     if (picked != null) visitDate.value = picked;
   }
 
+  // [BUAT] Kirim booking baru — POST /bookings
   Future<void> submit() async {
     if (nameCtrl.text.trim().isEmpty) {
       _snack('Nama tamu harus diisi.');
@@ -98,6 +98,7 @@ class BookingFormController extends GetxController {
         if (notesCtrl.text.trim().isNotEmpty) 'notes': notesCtrl.text.trim(),
       });
 
+      // Lanjut ke halaman pembayaran Midtrans dengan snap_token
       final data = res['data'] as Map<String, dynamic>? ?? res;
       final bookingCode = data['booking_code'] as String? ?? '';
       final snapToken = data['snap_token'] as String? ?? '';
@@ -125,9 +126,7 @@ class BookingFormController extends GetxController {
 
   @override
   void onClose() {
-    // TextEditingControllers are NOT disposed here because this controller
-    // uses fenix: true — GetX may recreate it, and disposing here causes
-    // "used after being disposed" errors on re-entry.
+    // Tidak dispose controller — fenix: true bisa recreate controller ini
     super.onClose();
   }
 }

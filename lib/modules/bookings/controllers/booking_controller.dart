@@ -9,21 +9,19 @@ class BookingController extends GetxController {
   var bookings = <BookingModel>[].obs;
   var error = ''.obs;
   var selectedFilter = 'semua'.obs;
-  var selectedMonth = Rxn<DateTime>(); // null = semua bulan
+  var selectedMonth = Rxn<DateTime>();
 
   final filters = ['semua', 'paid', 'pending', 'cancelled'];
 
   List<BookingModel> get filtered {
     var list = bookings.toList();
 
-    // Filter status
     if (selectedFilter.value != 'semua') {
       list = list
           .where((b) => b.status.toLowerCase() == selectedFilter.value)
           .toList();
     }
 
-    // Filter bulan
     if (selectedMonth.value != null) {
       final m = selectedMonth.value!;
       list = list.where((b) {
@@ -40,12 +38,12 @@ class BookingController extends GetxController {
     return list;
   }
 
-  // Pendapatan dari filtered list (hanya paid/confirmed)
+  // Total pendapatan dari hasil filter (hanya status paid/confirmed)
   int get filteredRevenue => filtered
       .where((b) => b.status == 'paid' || b.status == 'confirmed')
       .fold(0, (sum, b) => sum + b.totalPrice);
 
-  // Daftar bulan yang tersedia dari data booking
+  // Daftar bulan yang tersedia berdasarkan data booking
   List<DateTime> get availableMonths {
     final months = <DateTime>{};
     for (final b in bookings) {
@@ -71,15 +69,16 @@ class BookingController extends GetxController {
     fetch();
   }
 
-  // Trigger auto-cancel booking expired di backend
+  // Picu auto-cancel booking kedaluwarsa di backend — GET /admin/artisan/clean-pending-bookings
   Future<void> _cleanPendingBookings() async {
     try {
       await _api.get('/admin/artisan/clean-pending-bookings');
     } catch (_) {
-      // Silent fail — tidak perlu tampilkan error ke user
+      // Gagal diam-diam, tidak perlu tampilkan error
     }
   }
 
+  // [BACA] Ambil semua data booking — GET /admin/bookings
   Future<void> fetch() async {
     isLoading.value = true;
     error.value = '';

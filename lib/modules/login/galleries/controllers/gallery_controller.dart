@@ -9,17 +9,15 @@ import '../../../../app/data/models/gallery_model.dart';
 class GalleryController extends GetxController {
   final _api = Get.find<ApiService>();
 
-  // ── State list ─────────────────────────────────────────
   var isLoading = true.obs;
   var isSubmitting = false.obs;
   var galleries = <GalleryModel>[].obs;
   var error = ''.obs;
 
-  // ── Progress upload batch ──────────────────────────────
-  var uploadProgress = 0.obs;   // berapa yang sudah selesai
-  var uploadTotal = 0.obs;      // total yang akan diupload
+  // Progres upload batch
+  var uploadProgress = 0.obs;
+  var uploadTotal = 0.obs;
 
-  // ── Filter ─────────────────────────────────────────────
   var selectedFilter = 'semua'.obs;
 
   List<GalleryModel> get filtered {
@@ -27,16 +25,13 @@ class GalleryController extends GetxController {
     return galleries.where((g) => g.category == selectedFilter.value).toList();
   }
 
-  // ── Form fields ────────────────────────────────────────
   final titleCtrl = TextEditingController();
   final captionCtrl = TextEditingController();
   var selectedCategory = 'kampung'.obs;
   var isFeatured = false.obs;
 
-  // Multi-select: list XFile
   var selectedImages = <XFile>[].obs;
 
-  // ── Edit mode ──────────────────────────────────────────
   var isEditMode = false.obs;
   var editingGalleryId = Rxn<int>();
 
@@ -55,53 +50,25 @@ class GalleryController extends GetxController {
     fetch();
   }
 
-  // ── Fetch ──────────────────────────────────────────────
+  // [BACA] Ambil semua galeri — GET /admin/galleries
   Future<void> fetch() async {
     isLoading.value = true;
     error.value = '';
     try {
       final res = await _api.get('/admin/galleries');
-      
-      // Debug: Disabled to reduce log noise
-      // debugPrint('═══════════════════════════════════════════');
-      // debugPrint('[Gallery] Response keys: ${res.keys.toList()}');
-      
       final raw = res['data'] ?? res['galleries'] ?? [];
       final list = raw is List
           ? raw.cast<Map<String, dynamic>>()
           : <Map<String, dynamic>>[];
-      
-      // debugPrint('[Gallery] Total items: ${list.length}');
-      
-      // if (list.isNotEmpty) {
-      //   final first = list.first;
-      //   debugPrint('[Gallery] First item keys: ${first.keys.toList()}');
-      //   debugPrint('[Gallery] id: ${first['id']}');
-      //   debugPrint('[Gallery] title: ${first['title']}');
-      //   debugPrint('[Gallery] image_path: ${first['image_path']}');
-      //   debugPrint('[Gallery] full_url: ${first['full_url']}');
-      //   debugPrint('[Gallery] image_url: ${first['image_url']}');
-      //   debugPrint('[Gallery] url: ${first['url']}');
-      //   debugPrint('[Gallery] path: ${first['path']}');
-      //   debugPrint('[Gallery] Full first item: $first');
-      // }
-      // debugPrint('═══════════════════════════════════════════');
-      
       galleries.value = list.map((e) => GalleryModel.fromJson(e)).toList();
-      
-      // Debug: Disabled to reduce log noise
-      // if (galleries.isNotEmpty) {
-      //   debugPrint('[Gallery] First gallery imageUrl: ${galleries.first.imageUrl}');
-      // }
     } catch (e) {
-      debugPrint('[Gallery] ❌ Error: $e');
+      debugPrint('[Gallery] Error: $e');
       error.value = e.toString().replaceFirst('Exception: ', '');
     } finally {
       isLoading.value = false;
     }
   }
 
-  // ── Pick multi image dari galeri ───────────────────────
   Future<void> pickImages() async {
     final picker = ImagePicker();
     final files = await picker.pickMultiImage(
@@ -109,11 +76,9 @@ class GalleryController extends GetxController {
       maxWidth: 1200,
     );
     if (files.isEmpty) return;
-    // Tambahkan ke list yang sudah ada (tidak replace)
     selectedImages.addAll(files);
   }
 
-  // ── Pick dari kamera (tambah ke list) ─────────────────
   Future<void> pickFromCamera() async {
     final picker = ImagePicker();
     final file = await picker.pickImage(
@@ -124,13 +89,11 @@ class GalleryController extends GetxController {
     if (file != null) selectedImages.add(file);
   }
 
-  // ── Hapus satu foto dari preview ───────────────────────
   void removeImage(int index) {
     selectedImages.removeAt(index);
   }
 
-  // ── Store batch ────────────────────────────────────────
-  // Kirim satu per satu karena API hanya support single upload
+  // [BUAT] Upload foto satu per satu — POST /admin/galleries (API hanya support single upload)
   Future<void> store() async {
     if (titleCtrl.text.trim().isEmpty) {
       Get.snackbar('Peringatan', 'Judul harus diisi.',
@@ -157,7 +120,7 @@ class GalleryController extends GetxController {
 
     for (int i = 0; i < selectedImages.length; i++) {
       final file = selectedImages[i];
-      // Judul: "Nama" untuk 1 foto, "Nama (1)", "Nama (2)" untuk banyak
+      // Tambahkan nomor urut untuk upload batch
       final title = selectedImages.length == 1
           ? baseTitle
           : '$baseTitle (${i + 1})';
@@ -205,7 +168,7 @@ class GalleryController extends GetxController {
     }
   }
 
-  // ── Populate form untuk edit ───────────────────────────
+  // Isi form dengan data galeri yang akan diedit
   void populateForm(GalleryModel gallery) {
     isEditMode.value = true;
     editingGalleryId.value = gallery.id;
@@ -213,10 +176,10 @@ class GalleryController extends GetxController {
     captionCtrl.text = gallery.caption ?? '';
     selectedCategory.value = gallery.category ?? 'kampung';
     isFeatured.value = gallery.isFeatured;
-    selectedImages.clear(); // Edit tidak perlu ganti gambar (opsional)
+    selectedImages.clear();
   }
 
-  // ── Update ─────────────────────────────────────────────
+  // [UBAH] Perbarui foto — POST /admin/galleries/:id dengan _method=PUT (Laravel method spoofing)
   Future<void> updateGallery() async {
     if (titleCtrl.text.trim().isEmpty) {
       Get.snackbar('Peringatan', 'Judul harus diisi.',
@@ -231,14 +194,13 @@ class GalleryController extends GetxController {
 
     isSubmitting.value = true;
     try {
-      // Jika ada gambar baru dipilih, gunakan multipart
       if (selectedImages.isNotEmpty) {
         final imageFile = await http.MultipartFile.fromPath(
             'image', selectedImages.first.path);
         await _api.postMultipart(
           '/admin/galleries/$id',
           fields: {
-            '_method': 'PUT', // Laravel method spoofing
+            '_method': 'PUT',
             'title': titleCtrl.text.trim(),
             if (captionCtrl.text.trim().isNotEmpty)
               'caption': captionCtrl.text.trim(),
@@ -248,7 +210,6 @@ class GalleryController extends GetxController {
           files: [imageFile],
         );
       } else {
-        // Tidak ada gambar baru — pakai POST multipart dengan _method spoofing
         await _api.postMultipart(
           '/admin/galleries/$id',
           fields: {
@@ -279,7 +240,7 @@ class GalleryController extends GetxController {
     }
   }
 
-  // ── Delete ─────────────────────────────────────────────
+  // [HAPUS] Hapus foto — DELETE /admin/galleries/:id
   Future<void> delete(int id) async {
     try {
       await _api.delete('/admin/galleries/$id');
@@ -296,7 +257,6 @@ class GalleryController extends GetxController {
     }
   }
 
-  // ── Clear form ─────────────────────────────────────────
   void clearForm() {
     isEditMode.value = false;
     editingGalleryId.value = null;
@@ -311,9 +271,7 @@ class GalleryController extends GetxController {
 
   @override
   void onClose() {
-    // TextEditingControllers are NOT disposed here because this controller
-    // uses fenix: true — GetX may recreate it, and disposing here causes
-    // "used after being disposed" errors on re-entry.
+    // Tidak dispose controller — fenix: true bisa recreate controller ini
     super.onClose();
   }
 }

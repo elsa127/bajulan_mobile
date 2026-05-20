@@ -73,8 +73,7 @@ class BookingModel {
     }
   }
 
-  /// Handles int, double, num, and decimal strings like "50000.00"
-  /// from Laravel decimal/numeric DB columns.
+  // Menangani int, double, dan string desimal dari kolom numerik Laravel (misal: "50000.00")
   static int? _parseInt(dynamic value) {
     if (value == null) return null;
     if (value is int) return value;

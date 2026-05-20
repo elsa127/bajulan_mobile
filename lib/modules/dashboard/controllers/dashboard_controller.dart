@@ -20,20 +20,20 @@ class DashboardController extends GetxController {
     _refreshNotifications();
   }
 
-  // Trigger auto-cancel booking expired di backend
+  // Picu auto-cancel booking kedaluwarsa di backend — GET /admin/artisan/clean-pending-bookings
   Future<void> _cleanPendingBookings() async {
     try {
       await _api.get('/admin/artisan/clean-pending-bookings');
     } catch (_) {
-      // Silent fail
+      // Gagal diam-diam, tidak perlu tampilkan error
     }
   }
 
+  // [BACA] Ambil statistik dashboard dan daftar event secara paralel
   Future<void> fetch() async {
     isLoading.value = true;
     error.value = '';
     try {
-      // Fetch dashboard dan event berlangsung secara paralel
       final results = await Future.wait([
         _api.get('/admin/dashboard'),
         _api.get('/admin/events'),
@@ -41,7 +41,7 @@ class DashboardController extends GetxController {
 
       dashboard.value = DashboardModel.fromJson(results[0]);
 
-      // Filter event yang sedang berlangsung atau upcoming
+      // Tampilkan hanya event yang sedang berlangsung atau akan datang
       final raw = results[1]['data'] ?? [];
       final list = raw is List ? raw.cast<Map<String, dynamic>>() : [];
       ongoingEvents.value = list

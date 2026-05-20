@@ -9,14 +9,12 @@ class AdminPackagesController extends GetxController {
   final _api = Get.find<ApiService>();
   final _picker = ImagePicker();
 
-  // ── List state ─────────────────────────────────────────
   var isLoading = true.obs;
   var packages = <PackageModel>[].obs;
   var error = ''.obs;
   var selectedFilter = 'all'.obs;
   var searchQuery = ''.obs;
 
-  // ── Edit form state ────────────────────────────────────
   final nameCtrl = TextEditingController();
   final priceCtrl = TextEditingController();
   final minPeopleCtrl = TextEditingController();
@@ -41,7 +39,7 @@ class AdminPackagesController extends GetxController {
     fetch();
   }
 
-  // ── Fetch ──────────────────────────────────────────────
+  // [BACA] Ambil semua paket — GET /admin/packages
   Future<void> fetch() async {
     isLoading.value = true;
     error.value = '';
@@ -56,7 +54,7 @@ class AdminPackagesController extends GetxController {
     }
   }
 
-  // ── Fill form for edit ─────────────────────────────────
+  // Isi form dengan data paket yang akan diedit
   void fillFormForEdit(PackageModel pkg) {
     nameCtrl.text = pkg.name;
     priceCtrl.text = pkg.pricePerPerson.toString();
@@ -68,7 +66,6 @@ class AdminPackagesController extends GetxController {
     coverImageFile.value = null;
   }
 
-  // ── Pick cover image ───────────────────────────────────
   Future<void> pickCoverImage() async {
     final picked = await _picker.pickImage(
       source: ImageSource.gallery,
@@ -78,7 +75,7 @@ class AdminPackagesController extends GetxController {
     if (picked != null) coverImageFile.value = picked;
   }
 
-  // ── Update ─────────────────────────────────────────────
+  // [UBAH] Perbarui paket — POST /admin/packages/:id dengan _method=PUT (Laravel method spoofing)
   Future<void> updatePackage(int id) async {
     if (nameCtrl.text.trim().isEmpty) {
       Get.snackbar('Oops!', 'Nama paket harus diisi.',
@@ -115,7 +112,7 @@ class AdminPackagesController extends GetxController {
       await _api.postMultipart('/admin/packages/$id',
           fields: fields, files: files.isEmpty ? null : files);
 
-      Get.back(); // tutup bottom sheet
+      Get.back();
       fetch();
       Get.snackbar('Sukses', 'Paket berhasil diperbarui.',
           snackPosition: SnackPosition.BOTTOM,
@@ -131,7 +128,7 @@ class AdminPackagesController extends GetxController {
     }
   }
 
-  // ── Delete ─────────────────────────────────────────────
+  // [HAPUS] Hapus paket — DELETE /admin/packages/:id
   Future<void> delete(int id) async {
     try {
       await _api.delete('/admin/packages/$id');
@@ -148,7 +145,7 @@ class AdminPackagesController extends GetxController {
     }
   }
 
-  // ── Filtered list ──────────────────────────────────────
+  // Hasil filter berdasarkan pencarian dan kategori
   List<PackageModel> get filteredPackages {
     var list = packages.toList();
     if (searchQuery.value.isNotEmpty) {
@@ -157,7 +154,6 @@ class AdminPackagesController extends GetxController {
               p.name.toLowerCase().contains(searchQuery.value.toLowerCase()))
           .toList();
     }
-    // Filter by category key langsung dari DB
     if (selectedFilter.value != 'all') {
       list = list.where((p) => p.category == selectedFilter.value).toList();
     }
@@ -175,9 +171,7 @@ class AdminPackagesController extends GetxController {
 
   @override
   void onClose() {
-    // TextEditingControllers are NOT disposed here because this controller
-    // uses fenix: true — GetX may recreate it, and disposing here causes
-    // "used after being disposed" errors on re-entry.
+    // Tidak dispose controller — fenix: true bisa recreate controller ini
     super.onClose();
   }
 }

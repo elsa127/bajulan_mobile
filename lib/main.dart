@@ -17,32 +17,29 @@ import 'modules/notifications/controllers/notification_controller.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Jalankan init yang bisa diparalelkan
+  // Jalankan semua inisialisasi secara paralel
   await Future.wait([
     GetStorage.init(),
     initializeDateFormatting('id_ID', null),
     Firebase.initializeApp(),
-    // Pre-cache font agar tidak download saat render pertama
     GoogleFonts.pendingFonts([
       GoogleFonts.plusJakartaSans(),
     ]),
   ]);
 
-  // Register services
+  // Daftarkan service utama sebagai permanent (tidak pernah dihapus)
   Get.put(ApiService(), permanent: true);
   Get.put(AuthService(), permanent: true);
   Get.put(NotificationController(), permanent: true);
 
-  // Sembunyikan status bar untuk splash yang lebih clean
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.dark,
   ));
 
-  // Jalankan app
   runApp(const BajulanApp());
 
-  // Init notification service di background
+  // Inisialisasi notifikasi di background setelah frame pertama
   Get.putAsync(() => NotificationService().init(), permanent: true);
 }
 
