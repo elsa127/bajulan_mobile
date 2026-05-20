@@ -11,13 +11,14 @@ class ApiService extends GetxService {
 
   String? get _token => _box.read(AppConstants.tokenKey);
 
+  // Bearer token
   Map<String, String> get _headers => {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
         if (_token != null) 'Authorization': 'Bearer $_token',
       };
 
-  // ─── GET ───────────────────────────────────────────────
+  // GET /path
   Future<Map<String, dynamic>> get(String path) async {
     try {
       final res = await http
@@ -29,7 +30,7 @@ class ApiService extends GetxService {
     }
   }
 
-  // ─── POST ──────────────────────────────────────────────
+  // POST /path
   Future<Map<String, dynamic>> post(String path, Map<String, dynamic> body) async {
     try {
       final res = await http
@@ -45,7 +46,7 @@ class ApiService extends GetxService {
     }
   }
 
-  // ─── PUT ───────────────────────────────────────────────
+  // PUT /path
   Future<Map<String, dynamic>> put(String path, Map<String, dynamic> body) async {
     try {
       final res = await http
@@ -61,7 +62,7 @@ class ApiService extends GetxService {
     }
   }
 
-  // ─── DELETE ────────────────────────────────────────────
+  // DELETE /path
   Future<Map<String, dynamic>> delete(String path) async {
     try {
       final res = await http
@@ -73,7 +74,7 @@ class ApiService extends GetxService {
     }
   }
 
-  // ─── MULTIPART (upload gambar) ─────────────────────────
+  // POST multipart (file upload)
   Future<Map<String, dynamic>> postMultipart(
     String path, {
     Map<String, String>? fields,
@@ -97,7 +98,6 @@ class ApiService extends GetxService {
     }
   }
 
-  // ─── HANDLER ───────────────────────────────────────────
   Map<String, dynamic> _handle(http.Response res, String path) {
     Map<String, dynamic> body;
     try {
@@ -107,7 +107,7 @@ class ApiService extends GetxService {
     }
 
     if (res.statusCode == 401) {
-      // Jangan auto-logout jika sedang proses login
+      // Skip auto-logout on login endpoint
       if (path.contains('/auth/login')) {
         throw Exception('Email atau password salah. Silakan coba lagi.');
       }
@@ -140,11 +140,9 @@ class ApiService extends GetxService {
     return body;
   }
 
-  // ─── PESAN ERROR YANG RAMAH ────────────────────────────
   String _friendlyError(dynamic e) {
     final str = e.toString();
 
-    // Tidak ada koneksi internet / DNS gagal
     if (str.contains('SocketException') ||
         str.contains('SocketFailed') ||
         str.contains('Failed host lookup') ||
@@ -156,21 +154,18 @@ class ApiService extends GetxService {
       return 'Tidak ada koneksi internet.\nPastikan WiFi atau data seluler aktif, lalu coba lagi.';
     }
 
-    // Timeout
     if (str.contains('TimeoutException') ||
         str.contains('timed out') ||
         str.contains('Connection timed')) {
       return 'Koneksi terlalu lambat atau server tidak merespons.\nCoba lagi dalam beberapa saat.';
     }
 
-    // SSL/TLS error
     if (str.contains('HandshakeException') ||
         str.contains('CERTIFICATE') ||
         str.contains('tlsv1')) {
       return 'Koneksi tidak aman. Periksa pengaturan jaringan Anda.';
     }
 
-    // Sudah pesan yang ramah (dari _handle)
     if (e is Exception) {
       final msg = str.replaceFirst('Exception: ', '');
       if (!msg.contains('ClientException') &&

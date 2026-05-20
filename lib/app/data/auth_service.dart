@@ -24,13 +24,14 @@ class AuthService extends GetxService {
     }
   }
 
+  // POST /auth/login
   Future<void> login(String email, String password) async {
     final res = await _api.post('/auth/login', {
       'email': email,
       'password': password,
     });
 
-    // Response struktur: { success: true, data: { user: {...}, token: "..." } }
+    // Response: { success: true, data: { user: {...}, token: "..." } }
     final data = res['data'] as Map<String, dynamic>?;
     final token = data?['token'] as String?;
 
@@ -49,10 +50,10 @@ class AuthService extends GetxService {
     isLoggedIn.value = true;
   }
 
+  // GET /auth/me — refresh user data on startup
   Future<void> _fetchMe() async {
     try {
       final res = await _api.get('/auth/me');
-      // Response: { success: true, data: { id, name, email, ... } }
       final userData = res['data'] as Map<String, dynamic>?;
       if (userData != null) {
         user.value = userData;
@@ -63,11 +64,12 @@ class AuthService extends GetxService {
     }
   }
 
+  // POST /auth/logout
   Future<void> logout() async {
     try {
       await _api.post('/auth/logout', {});
     } catch (_) {
-      // tetap lanjut logout
+      // proceed regardless
     } finally {
       _box.remove(AppConstants.tokenKey);
       _box.remove(AppConstants.userKey);
