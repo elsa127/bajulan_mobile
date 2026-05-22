@@ -25,7 +25,7 @@ class LoginView extends GetView<LoginController> {
                 _buildFooter(),
                 const SizedBox(height: 16),
                 const Text(
-                  'Versi 1.0 • Bajulan Digital Ecosystem',
+                  'Versi 1.0 • Bajoelan Team',
                   style: TextStyle(color: AppColors.outline, fontSize: 11),
                 ),
                 const SizedBox(height: 16),
@@ -222,7 +222,7 @@ class LoginView extends GetView<LoginController> {
             _footerLink(
               icon: Icons.support_agent_outlined,
               label: 'Bantuan IT',
-              onTap: () => _launchUrl('https://wa.me/6281234567890'),
+              onTap: () => _launchUrl('https://wa.me/62895426093366'),
             ),
             const SizedBox(width: 20),
             _footerLink(
