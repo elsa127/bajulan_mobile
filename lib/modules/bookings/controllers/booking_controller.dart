@@ -74,7 +74,7 @@ class BookingController extends GetxController {
     try {
       await _api.get('/admin/artisan/clean-pending-bookings');
     } catch (_) {
-      // Gagal diam-diam, tidak perlu tampilkan error
+
     }
   }
 
