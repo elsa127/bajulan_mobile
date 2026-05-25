@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../../app/shared/colors.dart';
-import '../../../../app/shared/widgets/network_image_widget.dart';
-import '../../../../app/routes/app_routes.dart';
-import '../../../../app/data/models/package_model.dart';
-import '../../../../app/data/models/event_model.dart';
+import '../../../app/shared/colors.dart';
+import '../../../app/shared/widgets/network_image_widget.dart';
+import '../../../app/routes/app_routes.dart';
+import '../../../app/data/models/package_model.dart';
+import '../../../app/data/models/event_model.dart';
 import '../controllers/home_controller.dart';
 import 'package:intl/intl.dart';
 

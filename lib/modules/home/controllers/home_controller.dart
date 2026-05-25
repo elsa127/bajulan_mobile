@@ -1,8 +1,8 @@
 import 'package:get/get.dart';
-import '../../../../app/data/api_service.dart';
-import '../../../../app/data/models/package_model.dart';
-import '../../../../app/data/models/event_model.dart';
-import '../../../../app/data/models/gallery_model.dart';
+import '../../../app/data/api_service.dart';
+import '../../../app/data/models/package_model.dart';
+import '../../../app/data/models/event_model.dart';
+import '../../../app/data/models/gallery_model.dart';
 
 class HomeController extends GetxController {
   final _api = Get.find<ApiService>();

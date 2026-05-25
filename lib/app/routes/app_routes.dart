@@ -1,15 +1,5 @@
 abstract class AppRoutes {
-  // Splash
   static const splash = '/splash';
-
-  // Public
-  static const home = '/';
-  static const packageDetail = '/package/:id';
-  static const booking = '/booking/:id';
-  static const payment = '/payment';
-  static const bookingStatus = '/booking-status';
-
-  // Auth
   static const login = '/login';
 
   // Admin

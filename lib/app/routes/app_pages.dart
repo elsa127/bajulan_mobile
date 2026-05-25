@@ -3,21 +3,6 @@ import 'package:get/get.dart';
 import 'app_routes.dart';
 import '../data/auth_service.dart';
 
-// Halaman publik
-import '../../modules/login/home/views/home_view.dart';
-import '../../modules/login/home/controllers/home_controller.dart';
-import '../../modules/packages/views/package_detail_view.dart';
-import '../../modules/packages/controllers/package_detail_controller.dart';
-import '../../modules/booking/views/booking_form_view.dart';
-import '../../modules/booking/controllers/booking_form_controller.dart';
-import '../../modules/booking/views/payment_view.dart';
-import '../../modules/booking/views/booking_status_view.dart';
-import '../../modules/booking/controllers/booking_status_controller.dart';
-
-// Autentikasi
-import '../../modules/login/views/login.dart';
-import '../../modules/login/controllers/login_controller.dart';
-
 // Halaman admin
 import '../../modules/dashboard/views/dashboard_view.dart';
 import '../../modules/dashboard/controllers/dashboard_controller.dart';
@@ -31,10 +16,14 @@ import '../../modules/bookings/views/booking_view.dart';
 import '../../modules/bookings/controllers/booking_controller.dart';
 import '../../modules/bookings/views/booking_detail_view.dart';
 import '../../modules/bookings/controllers/booking_detail_controller.dart';
-import '../../modules/login/galleries/views/gallery_view.dart';
-import '../../modules/login/galleries/controllers/gallery_controller.dart';
+import '../../modules/galleries/views/gallery_view.dart';
+import '../../modules/galleries/controllers/gallery_controller.dart';
 import '../../modules/notifications/views/notification_view.dart';
 import '../../modules/notifications/controllers/notification_controller.dart';
+
+// Autentikasi
+import '../../modules/login/views/login.dart';
+import '../../modules/login/controllers/login_controller.dart';
 
 import '../../modules/splash/splash_view.dart';
 
@@ -44,30 +33,6 @@ class AppPages {
       name: AppRoutes.splash,
       page: () => const SplashView(),
       transition: Transition.fadeIn,
-    ),
-    GetPage(
-      name: AppRoutes.home,
-      page: () => const HomeView(),
-      binding: BindingsBuilder(() => Get.lazyPut(() => HomeController(), fenix: true)),
-    ),
-    GetPage(
-      name: AppRoutes.packageDetail,
-      page: () => const PackageDetailView(),
-      binding: BindingsBuilder(() => Get.lazyPut(() => PackageDetailController(), fenix: true)),
-    ),
-    GetPage(
-      name: AppRoutes.booking,
-      page: () => const BookingFormView(),
-      binding: BindingsBuilder(() => Get.lazyPut(() => BookingFormController(), fenix: true)),
-    ),
-    GetPage(
-      name: AppRoutes.payment,
-      page: () => const PaymentView(),
-    ),
-    GetPage(
-      name: AppRoutes.bookingStatus,
-      page: () => const BookingStatusView(),
-      binding: BindingsBuilder(() => Get.lazyPut(() => BookingStatusController(), fenix: true)),
     ),
 
     // Halaman login
